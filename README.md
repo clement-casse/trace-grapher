@@ -1,4 +1,4 @@
-# 
+# Trace Grapher
 
 ## Motivation
 
