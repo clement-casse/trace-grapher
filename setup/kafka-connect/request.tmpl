@@ -1,0 +1,18 @@
+{
+    "name": "Neo4jSinkConnector",
+    "config": {
+        "connector.class": "streams.kafka.connect.sink.Neo4jSinkConnector",
+        "errors.retry.timeout": "-1",
+        "errors.log.include.messages": "true",
+        "topics": "jaeger-spans",
+        "tasks.max": "1",
+        "neo4j.server.uri": "bolt://neo4j:7687/",
+        "errors.retry.delay.max.ms": "1000",
+        "name": "Neo4jSinkConnector",
+        "errors.tolerance": "all",
+        "neo4j.encryption.enabled": "false",
+        "errors.log.enable": "true",
+        "neo4j.authentication.type": "NONE",
+        "neo4j.topic.cypher.jaeger-spans": "${CYPHER_CMD}"
+    }
+}

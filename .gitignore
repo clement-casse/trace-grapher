@@ -1,0 +1,2 @@
+**/request-data.json
+provision-compose/neo4j/logs/*.log
