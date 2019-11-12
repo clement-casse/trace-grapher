@@ -520,6 +520,61 @@ services:
     logging: *default-logging
 
 
+  cadvisor:
+    image: google/cadvisor:latest
+    restart: always
+    expose:
+      - '8080'
+    volumes:
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: yes
+      - type: bind
+        source: /var/run/
+        target: /var/run/
+        read_only: yes
+      - type: bind
+        source: /sys
+        target: /sys
+        read_only: yes
+      - type: bind
+        source: /var/lib/docker
+        target: /var/lib/docker
+        read_only: yes
+      - type: bind
+        source: /dev/disk
+        target: /dev/disk
+        read_only: yes
+    logging: *default-logging
+
+
+  node-exporter:
+    image: prom/node-exporter
+    restart: always
+    expose:
+      - '9100'
+    volumes:
+      - type: bind
+        source: /
+        target: /rootfs
+        read_only: yes
+      - type: bind
+        source: /proc
+        target: /host/proc
+        read_only: yes
+      - type: bind
+        source: /sys
+        target: /host/sys
+        read_only: yes
+    command: [
+      '--path.procfs=/host/proc',
+      '--path.sysfs=/host/sys',
+      '--collector.filesystem.ignored-mount-points',
+      '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+    ]
+    logging: *default-logging
+
   grafana:
     image: grafana/grafana:6.4.2
     restart: always
