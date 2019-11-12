@@ -1,5 +1,5 @@
 MERGE (r:Resource{ name: event.process.serviceName })
-    ON CREATE SET r += { created: timestamp() }
+    ON CREATE SET r += { created: timestamp() }
     ON MATCH SET r += { lastSeen: timestamp() }
 
 MERGE (t:Trace{ id: event.traceId })
