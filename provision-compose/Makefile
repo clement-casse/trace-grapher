@@ -14,14 +14,14 @@ NO_PROXY ?= localhost
 .PHONY: deploy stop clean
 
 deploy:
-	ADVERTISED_HOST=$(HOSTNAME) \
+	ADVERTISED_HOST='$(HOSTNAME)' \
 	HTTP_PROXY=$(HTTP_PROXY) \
 	HTTPS_PROXY=$(HTTPS_PROXY) \
-	NO_PROXY=$(NO_PROXY) \
+	NO_PROXY='$(NO_PROXY)' \
 	docker-compose up -d --build
 
 stop:
-	ADVERTISED_HOST=$(HOSTNAME) docker-compose down
+	ADVERTISED_HOST='$(HOSTNAME)' docker-compose down
 
 remove:
-	ADVERTISED_HOST=$(HOSTNAME) docker-compose down -v
+	ADVERTISED_HOST='$(HOSTNAME)' docker-compose down -v

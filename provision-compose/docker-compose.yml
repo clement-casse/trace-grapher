@@ -11,7 +11,7 @@ x-config:
   - &https_proxy ${HTTPS_PROXY:-}
 
   # NO_PROXY and no_proxy environment variables to be injected for building images
-  - &no_proxy ${NO_PROXY:-"localhost"}
+  - &no_proxy ${NO_PROXY:-localhost,127.0.0.1}
 
 
 x-logging:
