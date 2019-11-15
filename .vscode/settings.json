@@ -1,0 +1,8 @@
+{
+    "[markdown]": {
+        "editor.wordWrap": "bounded",
+        "editor.renderWhitespace": "all",
+        "editor.wordWrapColumn": 80,
+        "editor.wrappingIndent": "indent"
+    }
+}
