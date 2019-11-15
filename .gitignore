@@ -1,2 +1,6 @@
 **/request-data.json
 provision-compose/neo4j/logs/*.log
+provision-k8s/strimzi/
+provision-k8s/linkerd/
+provision-k8s/prometheus/
+provision-k8s/jaeger/
