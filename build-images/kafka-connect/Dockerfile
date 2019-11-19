@@ -17,3 +17,5 @@ RUN apt-get update \
  && rm -rf neo4j-kafka-connect-neo4j.zip \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /
