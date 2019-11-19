@@ -30,10 +30,16 @@ As a result, we can expect trace data to follow some well-defined schema [[6]] a
 
 ## Model
 
-According to OpenTelemetry Specifications (still work in progress as the time of writing) a *Trace*, is made of *Spans*, which represent the time taken to do an action.
-Each *Span* is associated with an *Operation*, which represents the intent of this action, and a *Resource*, which represents its executor.
+According to OpenTelemetry Specifications (still work in progress as the time of writing) a *Trace* is an aggregation of *Spans*.
+*Spans* represent the time taken to do an action and bear also some semantic information about the measurement.
+Each *Span* is associated with :
 
-> @TODO insert meta model and Use-Cases
+- an *Operation*, which represents the intent of this action
+- a *Resource*, which represents its executor
+
+> @TODO Add the notion of [metrics and measurement](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md)
+
+![OpenTelemetry Property Graph Meta Model](https://docs.google.com/drawings/d/e/2PACX-1vTU8yfwfsLbpB3zEs7_-8g_zVF3T77s5iem4hotwDhw5mEbhbyWwzMHHzg8tsRHwILKtgzMqQHLJAC0/pub?w=1440&amp;h=1080)
 
 ## Implementation
 
@@ -45,7 +51,7 @@ It uses the [Jaeger Application](https://www.jaegertracing.io/) which is one of 
 The application is built on top of a [Jaeger deployment based on Kafka](https://www.jaegertracing.io/docs/1.14/deployment/#kafka) to store Spans before joining them into Traces.
 The stream of Spans is consumed by Kafka-Connect that execute a [Cypher query](setup/trace-to-graph-mapping.cypher) to push data in Neo4j.
 
-For the moment graph manipulation is done through Neo4j Web-UI.
+For the moment graph manipulation is done through Neo4j Web-UI, although the goal remains to make the pipeline go a step further by automating this graph analysis.
 
 ![Architecture](https://docs.google.com/drawings/d/e/2PACX-1vSlGvjSOVp4mCCCZwOfgbp1Dvl6InGC1wrb9KNi-eUAjBdWwdqYtZxIo5R8aHMphAwwkCOUc7V557CC/pub?w=1912&amp;h=1208)
 
@@ -60,6 +66,7 @@ To run `make` some tools need to be installed :
 - `docker` can be installed following the [official Docker documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
 - `docker-compose` can be installed following the [official `docker-compose` documentation](https://docs.docker.com/compose/install/)
 - `jq` a [command line tool to decode json](https://stedolan.github.io/jq/), available on most of the package managers (`apt`, `brew`, ...)
+- `yq` a [command line tool to decode YAML](https://github.com/mikefarah/yq) if you want tu use K8S deployment.
 - `envsubst` from [gettext](https://www.gnu.org/software/gettext/), use your package manager to install `gettext`.
 
 > When using `make`, it should complain when these executable are not found in your `$PATH`
