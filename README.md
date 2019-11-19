@@ -1,44 +1,38 @@
 # Trace Grapher
 
-## Context
+## Motivation
 
-In the recent years distributed-tracing became an invaluable tool to better inspect Heavily Distributed Cloud Applications.
-Trace data is rich by nature: it has both a numeric side, measuring latency at precise points in time, and also has a semantic side by exposing metadata and relationship between measurements.
-Unlike other monitoring methods (metrics collection or logging), distributed tracing establish first causality between measurements.
-This kind of data is, as a result, first-class citizen when solving problems like bottleneck identification or root-cause analysis, problems often encountered in nowadays Cloud Application.
-Most of the main actors of Cloud Computing have OpenSourced parts of their tooling to handle Tracing [[1], [2], [5]] and reported success stories using traces in production [[3], [4]].
+**The idea behind this project is take profit of the heavily connected nature of trace data to create and maintain at runtime a property graph modeling the performance of the monitored Cloud-Application.**
 
-In the OpenSource landscape, a major initiative regarding distributed-tracing is [OpenTelemetry](https://opentelemetry.io/); this project has a high visibility in the OpenSource community.
-This project is the result of the fusion of two initiatives related to tracing Cloud-Applications: OpenTracing, whose aim is to provide a unified API for tracing and OpenCensus, whose focus is a production-ready way of creating trace.
+Nowadays more and more applications are developed to be Cloud-Native, which means some constraints:
 
-> @TODO Talk about how OpenTelemetry can provide more numeric data.
+- The application is developed as a fully distributed system
+- Components are disposable and may be volatile
+- The application is built on top of abstractions layers managed by third-parties that may not be monitored
 
-However, distributed-tracing adoption for smaller-size Cloud-Applications remains low.
-Indeed, the most common use-case for distributed-tracing is the developer gaining insight of the propagation of requests in the application with the Gantt-Chart view of the traces.
-State-of-the-Art trace-based APM collect measurements and aggregate them into traces; then these traces are stored in a database and displayed by a UI without any further treatment.
-In addition Tracing is costly, trace data is heavy and may require high infrastructure costs if not sampled properly.
-Some work has already been done on how to keep trace data representative while having a sparse sampling strategy [[6]].
-While there is an increased adoption of tracing tool, trace data is rarely used in production because of its complexity.
+Monitoring such systems involves addressing new challenges in the APM community.
+Indeed, for Cloud-Applications, **ensuring bottlenecks are identified** is a critical criteria for delivering the service and scaling.
+Also, the **ability to identify the root-cause** in an error propagation scenario is also crucial to patch and recover the system.
+*These challenges involve maintaining a global view of a rapidly evolving distributed system*.
+
+This is why tracing became an important topic among the companies doing their business in the Clouds [[1], [2], [3], [4], [5]].
+Recent initiatives like [OpenTelemetry](https://opentelemetry.io) aims to normalize, and also to provide an implementation, on how trace data is passed from the monitoring system to the APM.
+As a result, we can expect trace data to follow some well-defined schema [[6]] and to respect some semantic conventions [[7], [8]].
 
 [1]: https://eng.uber.com/distributed-tracing/ "Uber evolution of tracing"
 [2]: https://blog.twitter.com/engineering/en_us/a/2012/distributed-systems-tracing-with-zipkin.html "Twitter opensourced Zipkin"
 [3]: https://ai.google/research/pubs/pub36356 "Google publication on Dapper"
 [4]: https://www.usenix.org/system/files/osdi18-veeraraghavan.pdf "Facebook publication Maelstrom"
 [5]: https://eng.lyft.com/envoy-joins-the-cncf-dc18baefbc22 "Lyft with Envoy-Proxy"
-[6]: https://people.mpi-sws.org/~jcmace/papers/lascasas2018weighted.pdf "Weighted Sampling of Execution Traces"
-
-## Motivation
-
-The idea behind this project is take profit of the heavily connected nature of trace data to create a property graph modeling performance of the monitored application.
-
-> **TBC**
-> @TODO Describe performances issues that need to be automatically discovered with trace data
+[6]: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-tracing.md "OpenTelemetry Tracing API"
+[7]: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-resource-semantic-conventions.md "Resource Semantic Conventions"
+[8]: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md#span-conventions "Span Semantic Conventions"
 
 ## Model
 
-> **Draft / Ideas**
-> According to OpenTelemetry Specifications (still work in progress as the time of writing) a *Trace*, is made of *Spans*, which represent the time taken to do an action.
-> Each *Span* is associated with an *Operation*, which represents the intent of this action, and a *Resource*, which represents its executor.
+According to OpenTelemetry Specifications (still work in progress as the time of writing) a *Trace*, is made of *Spans*, which represent the time taken to do an action.
+Each *Span* is associated with an *Operation*, which represents the intent of this action, and a *Resource*, which represents its executor.
+
 > @TODO insert meta model and Use-Cases
 
 ## Implementation
