@@ -19,6 +19,9 @@ This is why tracing became an important topic among the companies doing their bu
 Recent initiatives like [OpenTelemetry](https://opentelemetry.io) aims to normalize, and also to provide an implementation, on how trace data is passed from the monitoring system to the APM.
 As a result, we can expect trace data to follow some well-defined schema [[6]] and to respect some semantic conventions [[7], [8]].
 
+However, state-of-the-art trace-based APM lack maturity and fail to provide a global view of the system.
+Their main purpose is helping the developer to understand interactions between the components while debugging and optimizing their code [[9]].
+
 [1]: https://eng.uber.com/distributed-tracing/ "Uber evolution of tracing"
 [2]: https://blog.twitter.com/engineering/en_us/a/2012/distributed-systems-tracing-with-zipkin.html "Twitter opensourced Zipkin"
 [3]: https://ai.google/research/pubs/pub36356 "Google publication on Dapper"
@@ -27,6 +30,7 @@ As a result, we can expect trace data to follow some well-defined schema [[6]] a
 [6]: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-tracing.md "OpenTelemetry Tracing API"
 [7]: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-resource-semantic-conventions.md "Resource Semantic Conventions"
 [8]: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md#span-conventions "Span Semantic Conventions"
+[9]: https://medium.com/@copyconstruct/distributed-tracing-weve-been-doing-it-wrong-39fc92a857df "Distributed Tracing — we’ve been doing it wrong Cindy Sridharan"
 
 ## Model
 
@@ -39,7 +43,7 @@ Each *Span* is associated with :
 
 > @TODO Add the notion of [metrics and measurement](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md)
 
-![OpenTelemetry Property Graph Meta Model](https://docs.google.com/drawings/d/e/2PACX-1vTU8yfwfsLbpB3zEs7_-8g_zVF3T77s5iem4hotwDhw5mEbhbyWwzMHHzg8tsRHwILKtgzMqQHLJAC0/pub?w=1440&amp;h=1080)
+![OpenTelemetry Property Graph Meta-Model](https://docs.google.com/drawings/d/e/2PACX-1vTU8yfwfsLbpB3zEs7_-8g_zVF3T77s5iem4hotwDhw5mEbhbyWwzMHHzg8tsRHwILKtgzMqQHLJAC0/pub?w=1440&amp;h=1080)
 
 ## Implementation
 
