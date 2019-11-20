@@ -41,9 +41,13 @@ Each *Span* is associated with :
 - an *Operation*, which represents the intent of this action
 - a *Resource*, which represents its executor
 
-> @TODO Add the notion of [metrics and measurement](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md)
-
 ![OpenTelemetry Property Graph Meta-Model](https://docs.google.com/drawings/d/e/2PACX-1vTU8yfwfsLbpB3zEs7_-8g_zVF3T77s5iem4hotwDhw5mEbhbyWwzMHHzg8tsRHwILKtgzMqQHLJAC0/pub?w=1440&amp;h=1080)
+
+> **To Do List:**
+>
+> - [ ] Implement the relationship `(:Span)-[:REFERENCE]->(:Span)` from te model in the PoC to be able to do root-cause analysis.
+> - [ ] Make resources not identified only by their name but by the whole set of properties of the vertex: the current implementation would hide load-balanced services or upgraded ones.
+> - [ ] Add the notion of [metrics and measurement](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md)
 
 ## Implementation
 
