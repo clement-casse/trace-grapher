@@ -4,3 +4,5 @@ provision-k8s/strimzi/
 provision-k8s/linkerd/
 provision-k8s/prometheus/
 provision-k8s/jaeger/
+provision-k8s/ECK/
+provision-k8s/elasticsearch-auth.yml

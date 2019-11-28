@@ -2,7 +2,7 @@ include vars.mk
 
 ## CHECK IF REQUIRED EXECUTABLES ARE PRESENT ON THE MACHINE
 #  Raise an error and stop make before executing rules
-REQUIRED_EXECUTABLES := curl kubectl yq
+REQUIRED_EXECUTABLES := curl kubectl yq envsubst
 CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 	$(if $(shell which $(exec)), "$(exec) found", $(error "The tool $(exec) cannot be found in PATH")) \
 )
@@ -81,6 +81,41 @@ setup-kafka-topic: kafka-topic.yml setup-kafka-cluster
 remove-kafka-topic: kafka-topic.yml
 	@kubectl delete -n $(APPLICATION_NS) -f $<
 
+
+## `setup-kafka-tools` deploy Tools to better inspect data hosted in the Tracing Kafka Cluster
+setup-kafka-tools: kafka-tools.yml setup-kafka-cluster
+	@kubectl wait 'kafka/tracing-cluster' \
+		--for=condition=Ready --timeout=300s -n $(APPLICATION_NS)
+	@kubectl apply -n $(APPLICATION_NS) -f $<
+
+
+## `remove-kafka-tools`
+remove-kafka-tools: kafka-tools.yml
+	@kubectl delete -n $(APPLICATION_NS) -f $<
+
+
+get-ECK: ECK
+DOWNLOADED_COMPONENTS += ECK
+ECK:
+	@mkdir -p $@
+	@echo "Downloading Elastic Cloud Kubernetes operator"
+	@curl --silent \
+		https://download.elastic.co/downloads/eck/$(ECK_VERSION)/all-in-one.yaml \
+		> $@/all-in-one.yaml
+	@echo "Done !"
+
+init-elastic: ECK
+	@kubectl apply -f $</all-in-one.yaml
+
+remove-elastic: ECK
+	@kubectl delete -f $</all-in-one.yaml
+
+elasticsearch-auth.yml: elasticsearch-auth.yml.tmpl ECK
+	kubectl wait 'pod/jaeger-tracing-backend-es-default-0' \
+		--for=condition=Ready --timeout=300s -n $(APPLICATION_NS)
+	@ES_USERNAME="elastic" \
+	ES_PASSWORD="$(shell kubectl -n $(APPLICATION_NS) get secret jaeger-tracing-backend-es-elastic-user -o go-template='{{.data.elastic | base64decode }}')" \
+	envsubst < $< > $@
 
 get-jaeger: jaeger
 DOWNLOADED_COMPONENTS += jaeger
