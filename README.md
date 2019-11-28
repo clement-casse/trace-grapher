@@ -34,6 +34,8 @@ Their main purpose is helping the developer to understand interactions between t
 
 ## Model
 
+### Expressing OpenTelemetry data as a property graph
+
 According to OpenTelemetry Specifications (still work in progress as the time of writing) a *Trace* is an aggregation of *Spans*.
 *Spans* represent the time taken to do an action and bear also some semantic information about the measurement.
 Each *Span* is associated with :
@@ -48,6 +50,10 @@ Each *Span* is associated with :
 > - [ ] Implement the relationship `(:Span)-[:REFERENCE]->(:Span)` from te model in the PoC to be able to do root-cause analysis.
 > - [ ] Make resources not identified only by their name but by the whole set of properties of the vertex: the current implementation would hide load-balanced services or upgraded ones.
 > - [ ] Add the notion of [metrics and measurement](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md)
+
+### Extending the model
+
+> Still WIP
 
 ## Implementation
 
