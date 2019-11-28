@@ -9,17 +9,12 @@ CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 
 DOWNLOADED_COMPONENTS :=
 
-.PHONY: kubernetes-dashboard configure-init \
+.PHONY: configure-init \
 	get-strimzi init-strimzi setup-kafka-cluster \
 	get-jaeger init-jaeger remove-jaeger \
 	get-prometheus init-prometheus remove-prometheus \
 	get-linkerd init-linkerd remove-linkerd \
 	wipe purge
-
-kubernetes-dashboard:
-	kubectl create -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
-	kubectl proxy &
-	@echo "Go to http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login"
 
 ## `configure-init` Lists actions to be done on a new Kubernetes Cluster
 configure-init:
