@@ -4,7 +4,7 @@ kind: KafkaTopic
 metadata:
   name: jaeger-spans
   labels:
-    strimzi.io/cluster: "my-cluster"
+    strimzi.io/cluster: "tracing-cluster"
 spec:
   partitions: 3
   replicas: 1

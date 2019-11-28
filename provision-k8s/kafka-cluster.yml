@@ -2,29 +2,40 @@
 apiVersion: kafka.strimzi.io/v1beta1
 kind: Kafka
 metadata:
-  name: my-cluster
+  name: tracing-cluster
 
 spec:
-
   kafka:
     replicas: 1
     listeners:
-      plain: {}
-      tls: {}
-      external:
+      plain: # Configures plain listener on port 9092.
+        networkPolicyPeers: []
+      external: # Configures external listener on port 9094
         type: nodeport
         tls: false
-    storage:
-      type: jbod
-      volumes:
-      - id: 0
-        type: persistent-claim
-        size: 100Gi
-        deleteClaim: false
     config:
       offsets.topic.replication.factor: 1
       transaction.state.log.replication.factor: 1
       transaction.state.log.min.isr: 1
+    # jvmOptions:
+    #   -Xms: "" #@TODO Lock Memory
+    #   -Xmx: "" #@TODO Lock Memory
+    # resources:
+    #   limits:
+    #     memory: 1Gi
+    #     cpu: "2"
+    #   requests:
+    #     memory: 1Gi
+    #     cpu: "1"
+    storage:
+      type: jbod
+      volumes:
+        - id: 0
+          type: persistent-claim
+          size: 100Gi
+          deleteClaim: false
+    logging: 
+      type: inline
     metrics:
       lowercaseOutputName: true
       rules:
@@ -121,12 +132,163 @@ spec:
         labels:
           quantile: "0.$4"
 
+
   zookeeper:
     replicas: 1
+    # jvmOptions:
+    #   -Xms: "" #@TODO Lock Memory
+    #   -Xmx: "" #@TODO Lock Memory
+    # resources:
+    #   limits:
+    #     memory: 1Gi
+    #     cpu: "2"
+    #   requests:
+    #     memory: 1Gi
+    #     cpu: "1"
     storage:
       type: persistent-claim
       size: 100Gi
       deleteClaim: false
+
+
   entityOperator:
     topicOperator: {}
     userOperator: {}
+
+
+  kafkaExporter:
+    groupRegex: ".*"
+    topicRegex: ".*"
+
+...
+
+
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaConnect
+metadata:
+  name: tracing-cluster
+spec:
+  image: "razalgethi/trace-grapher-strimzi-kafka-connect"
+  version: 2.3.0
+  replicas: 1
+  bootstrapServers: tracing-cluster-kafka-bootstrap:9092
+  # jvmOptions:
+  #   -Xms: "" #@TODO Lock Memory
+  #   -Xmx: "" #@TODO Lock Memory
+  # resources:
+  #   limits:
+  #     memory: 1Gi
+  #     cpu: "2"
+  #   requests:
+  #     memory: 1Gi
+  #     cpu: "1"
+  config:
+    group.id: kafka-connect-group
+    config.storage.replication.factor: 1
+    offset.storage.replication.factor: 1
+    status.storage.replication.factor: 1
+    key.converter.schemas.enable: false
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter.schemas.enable: false
+    value.converter: "org.apache.kafka.connect.json.JsonConverter"
+    internal.key.converter: "org.apache.kafka.connect.json.JsonConverter"
+    internal.value.converter: "org.apache.kafka.connect.json.JsonConverter"
+  tracing:
+    type: jaeger
+  logging:
+    type: inline
+  metrics:
+    lowercaseOutputName: true
+    rules:
+      # Generic gauges for percents
+      - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*><>Value
+        name: kafka_$1_$2_$3_percent
+        type: GAUGE
+      - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*, (.+)=(.+)><>Value
+        name: kafka_$1_$2_$3_percent
+        type: GAUGE
+        labels:
+          "$4": "$5"
+      # Generic per-second counters with 0-2 key/value pairs
+      - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+), (.+)=(.+)><>Count
+        name: kafka_$1_$2_$3_total
+        type: COUNTER
+        labels:
+          "$4": "$5"
+          "$6": "$7"
+      - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+)><>Count
+        name: kafka_$1_$2_$3_total
+        type: COUNTER
+        labels:
+          "$4": "$5"
+      - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*><>Count
+        name: kafka_$1_$2_$3_total
+        type: COUNTER
+      # Generic gauges with 0-2 key/value pairs
+      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Value
+        name: kafka_$1_$2_$3
+        type: GAUGE
+        labels:
+          "$4": "$5"
+          "$6": "$7"
+      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Value
+        name: kafka_$1_$2_$3
+        type: GAUGE
+        labels:
+          "$4": "$5"
+      - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Value
+        name: kafka_$1_$2_$3
+        type: GAUGE
+      # Emulate Prometheus 'Summary' metrics for the exported 'Histogram's.
+      # Note that these are missing the '_sum' metric!
+      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Count
+        name: kafka_$1_$2_$3_count
+        type: COUNTER
+        labels:
+          "$4": "$5"
+          "$6": "$7"
+      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*), (.+)=(.+)><>(\d+)thPercentile
+        name: kafka_$1_$2_$3
+        type: GAUGE
+        labels:
+          "$4": "$5"
+          "$6": "$7"
+          quantile: "0.$8"
+      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Count
+        name: kafka_$1_$2_$3_count
+        type: COUNTER
+        labels:
+          "$4": "$5"
+      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*)><>(\d+)thPercentile
+        name: kafka_$1_$2_$3
+        type: GAUGE
+        labels:
+          "$4": "$5"
+          quantile: "0.$6"
+      - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Count
+        name: kafka_$1_$2_$3_count
+        type: COUNTER
+      - pattern: kafka.(\w+)<type=(.+), name=(.+)><>(\d+)thPercentile
+        name: kafka_$1_$2_$3
+        type: GAUGE
+        labels:
+          quantile: "0.$4"
+...
+
+
+---
+apiVersion: kafka.strimzi.io/v1alpha1
+kind: KafkaBridge
+metadata:
+  name: tracing-cluster
+spec:
+  replicas: 1
+  bootstrapServers: tracing-cluster-kafka-bootstrap:9092
+  http:
+    port: 8082
+  logging:
+    type: inline
+# status:
+#   url: ''
+...
