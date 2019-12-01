@@ -5,6 +5,10 @@ metadata:
   name: jaeger-tracing-backend
 spec:
   version: 7.4.2
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
   nodeSets:
     - name: default
       count: 1
@@ -58,4 +62,8 @@ spec:
   count: 1
   elasticsearchRef:
     name: jaeger-tracing-backend
+  http:
+    tls:
+      selfSignedCertificate:
+        disabled: true
 ...
