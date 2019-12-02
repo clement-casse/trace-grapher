@@ -1,0 +1,77 @@
+---
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: jaeger-streaming
+spec:
+  strategy: streaming
+
+  collector:
+    options:
+      kafka:
+        producer:
+          topic: jaeger-spans
+          encoding: json
+          brokers: tracing-cluster-kafka-bootstrap:9092
+
+  ingester:
+    options:
+      kafka:
+        consumer:
+          topic: jaeger-spans
+          encoding: json
+          brokers: tracing-cluster-kafka-bootstrap:9092
+          group-id: jaeger-ingester
+      ingester:
+        deadlockInterval: 0
+        parallelism: 10 # Default: "1000" // too much data at once for neo4j ==> timeout on ingestion and it is not suitable for tests
+
+  storage:
+    type: elasticsearch
+    options:
+      es:
+        # use-aliases: true
+        server-urls: http://jaeger-tracing-backend-es-http:9200
+    secretName: elasticsearch-auth
+    esIndexCleaner:
+      enabled: false
+      image: jaegertracing/jaeger-es-index-cleaner
+      numberOfDays: 7
+      schedule: "55 23 * * *"
+    # esRollover:
+    #   enabled: true
+    #   conditions: "{\"max_age\": \"2d\"}"
+    #   readTTL: 7d
+    #   schedule: "55 23 * * *"
+
+  query:
+    options:
+      query:
+        base-path: /jaeger
+
+  ui:
+    options:
+      dependencies:
+        menuEnabled: false
+
+  ingress:
+    enabled: false
+...
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jaeger-query
+spec:
+  entryPoints:
+    - http
+    - https
+  routes:
+    - kind: Rule
+      match: PathPrefix(`/jaeger/`)
+      services:
+      - name: jaeger-streaming-query
+        port: 16686
+...
