@@ -97,3 +97,53 @@ spec:
       port: 8000
       targetPort: 8000
 ...
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kafka-connect-ui
+spec:
+  entryPoints:
+    - http
+    - https
+  routes:
+    - kind: Rule
+      match: 'PathPrefix(`/kafka-connect/`)'
+      services:
+        - name: tracing-cluster-connect-ui
+          port: 8000
+      middlewares:
+        - name: kafka-tools-strip-ui-prefixes
+    - kind: Rule
+      match: 'PathPrefix(`/api/kafka-connect-{id:[0-9]+}`)'
+      services:
+        - name: tracing-cluster-connect-ui
+          port: 8000
+    - kind: Rule
+      match: 'PathPrefix(`/kafka-topics/`)'
+      services:
+        - name: tracing-cluster-topics-ui
+          port: 8000
+      middlewares:
+        - name: kafka-tools-strip-ui-prefixes
+    - kind: Rule
+      match: 'PathPrefix(`/api/kafka-rest-proxy/`)'
+      services:
+        - name: tracing-cluster-topics-ui
+          port: 8000
+...
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: kafka-tools-strip-ui-prefixes
+spec:
+  stripPrefix:
+    prefixes:
+      - /kafka-connect
+      - /kafka-topics
+...
