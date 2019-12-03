@@ -33,6 +33,8 @@ metadata:
   name: traefik
   labels:
     app: traefik
+  annotations:
+    "sidecar.jaegertracing.io/inject": "true"
 
 spec:
   replicas: 1
@@ -57,6 +59,11 @@ spec:
             '--providers.kubernetescrd',
             '--metrics.prometheus',
             '--metrics.prometheus.entrypoint=traefik',
+            '--tracing.jaeger',
+            '--tracing.jaeger.samplingServerURL=http://localhost:5778/sampling',
+            '--tracing.jaeger.samplingType=const',
+            '--tracing.jaeger.samplingParam=1',
+            '--tracing.jaeger.localAgentHostPort=localhost:6831',
           ]
           ports:
             - name: web

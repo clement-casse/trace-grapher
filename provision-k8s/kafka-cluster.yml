@@ -173,16 +173,16 @@ spec:
   version: 2.3.0
   replicas: 1
   bootstrapServers: tracing-cluster-kafka-bootstrap:9092
-  # jvmOptions:
-  #   -Xms: "" #@TODO Lock Memory
-  #   -Xmx: "" #@TODO Lock Memory
-  # resources:
-  #   limits:
-  #     memory: 1Gi
-  #     cpu: "2"
-  #   requests:
-  #     memory: 1Gi
-  #     cpu: "1"
+  jvmOptions:
+    -Xms: "256M"
+    -Xmx: "256M"
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: "2"
+    requests:
+      memory: 1Gi
+      cpu: "500m"
   config:
     group.id: kafka-connect-group
     config.storage.replication.factor: 1
@@ -198,97 +198,29 @@ spec:
     type: jaeger
   logging:
     type: inline
+  template:
+    deployment:
+      metadata:
+        annotations:
+          "sidecar.jaegertracing.io/inject": "true"
+    connectContainer:
+      env:
+        - name: JAEGER_SERVICE_NAME
+          value: tracing-cluster-connect
+        - name: JAEGER_AGENT_HOST
+          value: localhost
+        - name: JAEGER_AGENT_PORT
+          value: "6831"
+        - name: JAEGER_SAMPLER_TYPE
+          value: const
+        - name: JAEGER_SAMPLER_PARAM
+          value: "1"
   metrics:
     lowercaseOutputName: true
+    lowercaseOutputLabelNames: true
     rules:
-      # Generic gauges for percents
-      - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*><>Value
-        name: kafka_$1_$2_$3_percent
-        type: GAUGE
-      - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*, (.+)=(.+)><>Value
-        name: kafka_$1_$2_$3_percent
-        type: GAUGE
-        labels:
-          "$4": "$5"
-      # Generic per-second counters with 0-2 key/value pairs
-      - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+), (.+)=(.+)><>Count
-        name: kafka_$1_$2_$3_total
-        type: COUNTER
-        labels:
-          "$4": "$5"
-          "$6": "$7"
-      - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+)><>Count
-        name: kafka_$1_$2_$3_total
-        type: COUNTER
-        labels:
-          "$4": "$5"
-      - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*><>Count
-        name: kafka_$1_$2_$3_total
-        type: COUNTER
-      # Generic gauges with 0-2 key/value pairs
-      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Value
-        name: kafka_$1_$2_$3
-        type: GAUGE
-        labels:
-          "$4": "$5"
-          "$6": "$7"
-      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Value
-        name: kafka_$1_$2_$3
-        type: GAUGE
-        labels:
-          "$4": "$5"
-      - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Value
-        name: kafka_$1_$2_$3
-        type: GAUGE
-      # Emulate Prometheus 'Summary' metrics for the exported 'Histogram's.
-      # Note that these are missing the '_sum' metric!
-      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Count
-        name: kafka_$1_$2_$3_count
-        type: COUNTER
-        labels:
-          "$4": "$5"
-          "$6": "$7"
-      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*), (.+)=(.+)><>(\d+)thPercentile
-        name: kafka_$1_$2_$3
-        type: GAUGE
-        labels:
-          "$4": "$5"
-          "$6": "$7"
-          quantile: "0.$8"
-      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Count
-        name: kafka_$1_$2_$3_count
-        type: COUNTER
-        labels:
-          "$4": "$5"
-      - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*)><>(\d+)thPercentile
-        name: kafka_$1_$2_$3
-        type: GAUGE
-        labels:
-          "$4": "$5"
-          quantile: "0.$6"
-      - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Count
-        name: kafka_$1_$2_$3_count
-        type: COUNTER
-      - pattern: kafka.(\w+)<type=(.+), name=(.+)><>(\d+)thPercentile
-        name: kafka_$1_$2_$3
-        type: GAUGE
-        labels:
-          quantile: "0.$4"
-...
-
-
----
-apiVersion: kafka.strimzi.io/v1alpha1
-kind: KafkaBridge
-metadata:
-  name: tracing-cluster
-spec:
-  replicas: 1
-  bootstrapServers: tracing-cluster-kafka-bootstrap:9092
-  http:
-    port: 8082
-  logging:
-    type: inline
-# status:
-#   url: ''
+    - pattern : "kafka.connect<type=connect-worker-metrics>([^:]+):"
+      name: "kafka_connect_connect_worker_metrics_$1"
+    - pattern : "kafka.connect<type=connect-metrics, client-id=([^:]+)><>([^:]+)"
+      name: "kafka_connect_connect_metrics_$1_$2"
 ...
