@@ -10,7 +10,6 @@ CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 .PHONY: configure-init \
 	get-strimzi init-strimzi remove-strimzi setup-kafka-cluster   remove-kafka-cluster   setup-kafka-topic remove-kafka-topic setup-kafka-tools remove-kafka-tools \
 	get-ECK     init-ECK     remove-ECK     setup-elastic-cluster remove-elastic-cluster setup-es-auth-secret \
-	get-jaeger  init-jaeger  remove-jaeger  setup-jaeger-stack    remove-jaeger-stack \
 	get-prometheus init-prometheus remove-prometheus \
 	get-linkerd init-linkerd remove-linkerd \
 	wipe purge
@@ -29,23 +28,6 @@ COMPONENT_REMOVAL_TARGETS :=
 configure-init:
 	@echo "Eventually creating Namespace: $(APPLICATION_NS)"
 	@-kubectl create namespace $(APPLICATION_NS)
-
-
-init-traefik: configure-init
-	@echo "Changing namespace references in YAML files."
-	@sed -i '' 's/namespace: .*/namespace: $(APPLICATION_NS)/' traefik/01-traefik-init.yml
-	@echo "Done !"
-
-
-setup-traefik: init-traefik
-	@kubectl apply -f traefik/01-traefik-init.yml
-	@kubectl apply -f traefik/02-traefik-deploy.yml -n $(APPLICATION_NS)
-
-
-COMPONENT_REMOVAL_TARGETS += remove-traefik
-remove-traefik:
-	@-kubectl delete -f traefik/01-traefik-init.yml
-	@-kubectl delete -f traefik/02-traefik-deploy.yml -n $(APPLICATION_NS)
 
 
 ## `get-strimzi` Downloads Strimzy-Operator installation procedure for Kubernetes
