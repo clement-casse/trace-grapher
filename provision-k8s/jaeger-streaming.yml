@@ -53,25 +53,4 @@ spec:
     options:
       dependencies:
         menuEnabled: false
-
-  ingress:
-    enabled: false
-...
-
-
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
-  name: jaeger-query
-spec:
-  entryPoints:
-    - http
-    - https
-  routes:
-    - kind: Rule
-      match: PathPrefix(`/jaeger/`)
-      services:
-      - name: jaeger-streaming-query
-        port: 16686
 ...
