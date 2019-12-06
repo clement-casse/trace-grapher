@@ -7,7 +7,8 @@ CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 	$(if $(shell which $(exec)), "$(exec) found", $(error "The tool $(exec) cannot be found in PATH")) \
 )
 
-.PHONY: configure-init \
+.PHONY: configure-init install-operators install-components\
+	setup-neo4j remove-neo4j \
 	get-strimzi init-strimzi remove-strimzi setup-kafka-cluster   remove-kafka-cluster   setup-kafka-topic remove-kafka-topic setup-kafka-tools remove-kafka-tools \
 	get-ECK     init-ECK     remove-ECK     setup-elastic-cluster remove-elastic-cluster setup-es-auth-secret \
 	get-prometheus init-prometheus remove-prometheus \
@@ -16,12 +17,14 @@ CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 
 
 all: \
-	setup-kafka-cluster setup-kafka-tools setup-kafka-topic \
-	setup-elastic-cluster setup-es-auth-secret \
-	setup-jaeger-stack
+	install-operators \
+	install-components
 
 
-DOWNLOADED_COMPONENTS :=
+DOWNLOADED_OPERATORS :=
+OPERATOR_INSTALL_TARGETS :=
+OPERATOR_REMOVAL_TARGETS :=
+COMPONENT_INSTALL_TARGETS :=
 COMPONENT_REMOVAL_TARGETS :=
 
 ## `configure-init` Lists actions to be done on a new Kubernetes Cluster
@@ -30,10 +33,20 @@ configure-init:
 	@-kubectl create namespace $(APPLICATION_NS)
 
 
+COMPONENT_INSTALL_TARGETS += setup-neo4j
+setup-neo4j: neo4j.yml configure-init
+	@kubectl apply -f $< -n $(APPLICATION_NS)
+
+
+COMPONENT_REMOVAL_TARGETS += remove-neo4j
+remove-neo4j: neo4j.yml
+	@-kubectl delete -f $< -n $(APPLICATION_NS)
+
+
 ## `get-strimzi` Downloads Strimzy-Operator installation procedure for Kubernetes
 ##               these files are removed when the `purge` target is executed
 get-strimzi: operators/strimzi
-DOWNLOADED_COMPONENTS += operators/strimzi
+DOWNLOADED_OPERATORS += operators/strimzi
 operators/strimzi:
 	@echo "Downloading Strimzi version $(STRIMZI_VERSION)"
 	@mkdir -p ./$@
@@ -46,6 +59,7 @@ operators/strimzi:
 ## `init-strimzi` Installs the Strimzi-Operator in the Target Kubernetes Cluster, as well as
 ##                strimzi CRDs and RBAC. It does not instanciate any Kafka broker nor zookeeper.
 ##                Operator, CRDs & RBAC are removed with `remove-strimzi`.
+OPERATOR_INSTALL_TARGETS += init-strimzi
 init-strimzi: operators/strimzi configure-init
 	@-kubectl create namespace $(STRIMZI_OPERATOR_NS)
 	@echo "Changing namespace references in YAML files."
@@ -64,14 +78,15 @@ init-strimzi: operators/strimzi configure-init
 
 
 ## `remove-strimzi` Deletes the Cluster Operator Deployment, the strimzi CRD and RBAC
-COMPONENT_REMOVAL_TARGETS += remove-strimzi
+OPERATOR_REMOVAL_TARGETS += remove-strimzi
 remove-strimzi: operators/strimzi
 	@-kubectl delete -f '$</install/cluster-operator'
 	@-kubectl delete namespace $(STRIMZI_OPERATOR_NS)
 
 
-## `setup-kafka-cluster` 
-setup-kafka-cluster: kafka-cluster.yml init-strimzi
+## `setup-kafka-cluster`
+COMPONENT_INSTALL_TARGETS += setup-kafka-cluster
+setup-kafka-cluster: kafka-cluster.yml
 	@kubectl apply -n $(APPLICATION_NS) -f $<
 
 
@@ -94,6 +109,7 @@ remove-kafka-topic: kafka-topic.yml
 
 
 ## `setup-kafka-tools` deploy Tools to better inspect data hosted in the Tracing Kafka Cluster
+COMPONENT_INSTALL_TARGETS += setup-kafka-tools
 setup-kafka-tools: kafka-tools.yml setup-kafka-cluster
 	@kubectl wait 'kafka/tracing-cluster' \
 		--for=condition=Ready --timeout=300s -n $(APPLICATION_NS)
@@ -109,7 +125,7 @@ remove-kafka-tools: kafka-tools.yml
 ## `get-ECK` Downloads the Elastic Cloud Kubernetes Operator into the ECK folder.
 ##           It does not instanciate any Elastic Operator nor Elasticsearch cluster.
 get-ECK: operators/ECK
-DOWNLOADED_COMPONENTS += operators/ECK
+DOWNLOADED_OPERATORS += operators/ECK
 operators/ECK:
 	@mkdir -p $@
 	@echo "Downloading Elastic Cloud Kubernetes operator"
@@ -121,20 +137,22 @@ operators/ECK:
 
 ## `init-ECK` Instanciate in the Kubernetes Cluster the Elastic Cloud Kubernetes Operator.
 ##            The Operator will be instanciated in its own namespace: "elastic-system"
+OPERATOR_INSTALL_TARGETS += init-ECK
 init-ECK: operators/ECK
 	@kubectl apply -f $</all-in-one.yaml
 
 
 ## `remove-ECK` Removes the Elasctic Cloud Kubernetes Operator frome the cluster,
 ##              However the ECK directory is not removed.
-COMPONENT_REMOVAL_TARGETS += remove-ECK
+OPERATOR_REMOVAL_TARGETS += remove-ECK
 remove-ECK: operators/ECK
 	@-kubectl delete -f $</all-in-one.yaml
 
 
 ## `setup-elastic-cluster` Use ECK to instanciate an Elasticsearch cluster that will
 ##                         be used by jaeger as storage backend.
-setup-elastic-cluster: elasticsearch-cluster.yml init-ECK configure-init
+COMPONENT_INSTALL_TARGETS += setup-elastic-cluster
+setup-elastic-cluster: elasticsearch-cluster.yml configure-init
 	@kubectl apply -f $< -n $(APPLICATION_NS)
 	@sleep 30
 	@kubectl wait 'pod/jaeger-tracing-backend-es-default-0' \
@@ -168,7 +186,7 @@ setup-es-auth-secret: elasticsearch-auth.yml
 
 ## `get-jaeger` 
 get-jaeger: operators/jaeger
-DOWNLOADED_COMPONENTS += operators/jaeger
+DOWNLOADED_OPERATORS += operators/jaeger
 operators/jaeger:
 	@mkdir -p $@
 	@echo "Downloading Jaeger Operator"
@@ -196,6 +214,7 @@ operators/jaeger:
 	@echo "Done !"
 
 
+OPERATOR_INSTALL_TARGETS += init-jaeger
 init-jaeger: operators/jaeger configure-init
 	@-kubectl create namespace $(JAEGER_OPERATOR_NS)
 	@kubectl apply -f $</service_account.yaml
@@ -204,7 +223,7 @@ init-jaeger: operators/jaeger configure-init
 	@kubectl apply -f $</operator.yaml
 
 
-COMPONENT_REMOVAL_TARGETS += remove-jaeger
+OPERATOR_REMOVAL_TARGETS += remove-jaeger
 remove-jaeger: operators/jaeger
 	@-kubectl delete -f $</operator.yaml
 	@-kubectl delete -f $</role_binding.yaml
@@ -214,11 +233,18 @@ remove-jaeger: operators/jaeger
 	@-kubectl delete namespace $(JAEGER_OPERATOR_NS)
 
 
-setup-jaeger-stack: jaeger-streaming.yml init-jaeger setup-es-auth-secret
+COMPONENT_INSTALL_TARGETS += setup-jaeger-stack
+setup-jaeger-stack: jaeger-streaming.yml setup-es-auth-secret setup-kafka-topic
 	@kubectl apply -n $(APPLICATION_NS) -f $<
 
+
+COMPONENT_REMOVAL_TARGETS += remove-jaeger-stack
+remove-jaeger-stack: jaeger-streaming.yml
+	@-kubectl delete -n $(APPLICATION_NS) -f $<
+
+
 get-prometheus: operators/prometheus
-DOWNLOADED_COMPONENTS += operators/prometheus
+DOWNLOADED_OPERATORS += operators/prometheus
 operators/prometheus:
 	@mkdir -p $@
 	@echo "Downloading CoreOS Prometheus Operator"
@@ -242,6 +268,7 @@ operators/prometheus:
 	@echo "Done !"
 
 
+OPERATOR_INSTALL_TARGETS += init-prometheus
 init-prometheus: operators/prometheus
 	@-kubectl create namespace $(PROM_OPERATOR_NS)
 	@kubectl apply -f $</prometheus-operator-deployment.yaml
@@ -250,7 +277,7 @@ init-prometheus: operators/prometheus
 	@kubectl apply -f $</prometheus-operator-service-account.yaml
 
 
-COMPONENT_REMOVAL_TARGETS += remove-prometheus
+OPERATOR_REMOVAL_TARGETS += remove-prometheus
 remove-prometheus: operators/prometheus
 	@echo "Removing Prometheus Operator ..."
 	@-kubectl delete -f $</prometheus-operator-service-account.yaml
@@ -265,7 +292,7 @@ remove-prometheus: operators/prometheus
 ##               it uses standard installation procedure but in the target directory
 ##               these binaries are removed when the `purge` target is executed
 get-linkerd: linkerd
-DOWNLOADED_COMPONENTS += linkerd
+DOWNLOADED_OPERATORS += linkerd
 linkerd:
 	@echo "Downloading and installing Linkerd Client version $(LINKERD2_VERSION)"
 	@mkdir -p ./$@
@@ -281,15 +308,24 @@ init-linkerd: linkerd
 	kubectl -n linkerd get deploy
 
 
-COMPONENT_REMOVAL_TARGETS += remove-linkerd
+OPERATOR_REMOVAL_TARGETS += remove-linkerd
 remove-linkerd:
 	@-$(LINKERD) install --ignore-cluster | kubectl delete -f -
 
 
+########------------------------------------------------------------------------------########
+
+
+install-operators: $(OPERATOR_INSTALL_TARGETS)
+
+
+install-components: $(COMPONENT_INSTALL_TARGETS)
+
+
 gg: wipe # Alias for fun ...
-wipe: $(COMPONENT_REMOVAL_TARGETS)
+wipe: $(COMPONENT_REMOVAL_TARGETS) $(OPERATOR_REMOVAL_TARGETS)
 	kubectl delete namespace $(APPLICATION_NS)
 
 
 purge: wipe
-	rm -rf $(DOWNLOADED_COMPONENTS)
+	rm -rf $(DOWNLOADED_OPERATORS)
