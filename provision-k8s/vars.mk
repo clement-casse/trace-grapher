@@ -2,7 +2,7 @@
 APPLICATION_NS := trace-grapher
 
 # Strimzi Version Number as written in the Github Release page: https://github.com/strimzi/strimzi-kafka-operator/releases
-STRIMZI_VERSION := 0.14.0
+STRIMZI_VERSION := 0.15.0
 
 JAEGER_OPERATOR_VERSION := v1.15.1
 

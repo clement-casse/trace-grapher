@@ -45,8 +45,9 @@ neo4j-api/request-data.json: neo4j-api/request.tmpl
 
 REQUEST_DATA_FILES += kafka-connect/request-data.json
 kafka-connect/request-data.json: CYPHER_CMD = $(shell cat -s trace-to-graph-mapping.cypher | sed -e 's|//.*$$||g' -e 's|"|\\\\\\"|g' | tr -s '[:space:]' ' ' )
+kafka-connect/request-data.json: NEO4J_HOST = neo4j-bolt-svc
 kafka-connect/request-data.json: kafka-connect/request.tmpl
-	@CYPHER_CMD="$(CYPHER_CMD)" envsubst < $< > $@
+	@CYPHER_CMD="$(CYPHER_CMD)" NEO4J_HOST="$(NEO4J_HOST)" envsubst < $< > $@
 	@echo File "$@" created
 
 

@@ -326,7 +326,7 @@ install-components: $(COMPONENT_INSTALL_TARGETS)
 
 gg: wipe # Alias for fun ...
 wipe: $(COMPONENT_REMOVAL_TARGETS)
-	kubectl delete namespace $(APPLICATION_NS)
+	@-kubectl delete namespace $(APPLICATION_NS)
 
 
 purge: wipe $(OPERATOR_REMOVAL_TARGETS)

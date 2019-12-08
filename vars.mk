@@ -1,4 +1,4 @@
-HOSTNAME := localhost
+HOSTNAME := 10.171.40.50.nip.io
 HTTP_PROXY :=
 HTTPS_PROXY :=
 NO_PROXY := localhost,127.0.0.1
