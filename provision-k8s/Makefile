@@ -27,6 +27,7 @@ OPERATOR_REMOVAL_TARGETS :=
 COMPONENT_INSTALL_TARGETS :=
 COMPONENT_REMOVAL_TARGETS :=
 
+
 ## `configure-init` Lists actions to be done on a new Kubernetes Cluster
 configure-init:
 	@echo "Eventually creating Namespace: $(APPLICATION_NS)"
@@ -191,19 +192,19 @@ operators/jaeger:
 	@mkdir -p $@
 	@echo "Downloading Jaeger Operator"
 	@curl --silent \
-		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/master/deploy/crds/jaegertracing_v1_jaeger_crd.yaml \
-		> $@/jaegertracing_v1_jaeger_crd.yaml
+		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/$(JAEGER_OPERATOR_VERSION)/deploy/crds/jaegertracing.io_jaegers_crd.yaml \
+		> $@/jaegertracing.io_jaegers_crd.yaml
 	@curl --silent \
-		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/master/deploy/service_account.yaml \
+		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/$(JAEGER_OPERATOR_VERSION)/deploy/service_account.yaml \
 		> $@/service_account.yaml
 	@curl --silent \
-		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/master/deploy/role.yaml \
+		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/$(JAEGER_OPERATOR_VERSION)/deploy/role.yaml \
 		> $@/role.yaml
 	@curl --silent \
-		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/master/deploy/role_binding.yaml \
+		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/$(JAEGER_OPERATOR_VERSION)/deploy/role_binding.yaml \
 		> $@/role_binding.yaml
 	@curl --silent \
-		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/master/deploy/operator.yaml \
+		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/$(JAEGER_OPERATOR_VERSION)/deploy/operator.yaml \
 		> $@/operator.yaml
 	@echo "Done !"
 	@echo "Changing namespace references in YAML files."
@@ -217,6 +218,7 @@ operators/jaeger:
 OPERATOR_INSTALL_TARGETS += init-jaeger
 init-jaeger: operators/jaeger configure-init
 	@-kubectl create namespace $(JAEGER_OPERATOR_NS)
+	@kubectl apply -f $</jaegertracing.io_jaegers_crd.yaml
 	@kubectl apply -f $</service_account.yaml
 	@kubectl apply -f $</role.yaml
 	@kubectl apply -f $</role_binding.yaml
@@ -229,7 +231,7 @@ remove-jaeger: operators/jaeger
 	@-kubectl delete -f $</role_binding.yaml
 	@-kubectl delete -f $</role.yaml
 	@-kubectl delete -f $</service_account.yaml
-	@-kubectl delete -f $</jaegertracing_v1_jaeger_crd.yaml
+	@-kubectl delete -f $</jaegertracing.io_jaegers_crd.yaml
 	@-kubectl delete namespace $(JAEGER_OPERATOR_NS)
 
 
@@ -323,9 +325,9 @@ install-components: $(COMPONENT_INSTALL_TARGETS)
 
 
 gg: wipe # Alias for fun ...
-wipe: $(COMPONENT_REMOVAL_TARGETS) $(OPERATOR_REMOVAL_TARGETS)
+wipe: $(COMPONENT_REMOVAL_TARGETS)
 	kubectl delete namespace $(APPLICATION_NS)
 
 
-purge: wipe
+purge: wipe $(OPERATOR_REMOVAL_TARGETS)
 	rm -rf $(DOWNLOADED_OPERATORS)
