@@ -1,6 +1,5 @@
 **/request-data.json
 provision-compose/neo4j/logs/*.log
-provision-k8s/operators/**/*
-!provision-k8s/operators/.gitkeep
-provision-k8s/linkerd/
+provision-k8s/_init/**/*
+!provision-k8s/_init/README.md
 provision-k8s/elasticsearch-auth.yml
