@@ -31,6 +31,8 @@ spec:
   - metadata:
       name: "neo4j-data"
     spec:
+      accessModes:
+        - ReadWriteOnce
       storageClassName: "local-path"
       resources:
         requests:

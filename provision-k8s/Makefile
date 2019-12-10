@@ -267,14 +267,14 @@ setup-es-auth-secret: elasticsearch-auth.yml
 install-operators: $(OPERATOR_INSTALL_TARGETS)
 
 
-install-components:
+install-components: configure-init
 	@kubectl apply -k ./overlays/$(OVERLAY)
 	make setup-es-auth-secret
 
 
 gg: wipe # Alias for fun ...
 wipe:
-	@-kubectl delete -k ./overlays/$(OVERLAY) -n $(APPLICATION_NS)
+	@-kubectl delete -k ./overlays/$(OVERLAY)
 	@-kubectl delete -f ./elasticsearch-auth.yml -n $(APPLICATION_NS)
 	@-rm -rf ./elasticsearch-auth.yml
 	@-kubectl delete namespace $(APPLICATION_NS)

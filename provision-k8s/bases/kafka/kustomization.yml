@@ -4,6 +4,8 @@ kind: Kustomization
 commonLabels:
   tracegrapher-tier: kafka-broker
 
+namespace: trace-grapher
+
 resources:
   - kafka-cluster.yml
   - kafka-connect.yml

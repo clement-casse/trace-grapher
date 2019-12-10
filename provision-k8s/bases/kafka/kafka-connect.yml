@@ -38,6 +38,7 @@ spec:
       metadata:
         annotations:
           "sidecar.jaegertracing.io/inject": "true"
+          "linkerd.io/inject": "enabled"
     connectContainer:
       env:
       - name: JAEGER_SERVICE_NAME

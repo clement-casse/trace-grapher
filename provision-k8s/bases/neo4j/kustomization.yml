@@ -6,8 +6,6 @@ configMapGenerator:
     files:
       - neo4j.conf
 
-namespace: trace-grapher
-
 resources:
   - service.yml
   - statefulset.yml
