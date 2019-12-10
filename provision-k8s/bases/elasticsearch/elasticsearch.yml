@@ -1,4 +1,3 @@
----
 apiVersion: elasticsearch.k8s.elastic.co/v1beta1
 kind: Elasticsearch
 metadata:
@@ -49,22 +48,4 @@ spec:
             resources:
               requests:
                 storage: 5Gi
-            storageClassName: hostpath
-...
-
-
----
-apiVersion: kibana.k8s.elastic.co/v1beta1
-kind: Kibana
-metadata:
-  name: kibana-sample
-spec:
-  version: 7.4.2
-  count: 1
-  elasticsearchRef:
-    name: jaeger-tracing-backend
-  http:
-    tls:
-      selfSignedCertificate:
-        disabled: true
-...
+            storageClassName: local-path

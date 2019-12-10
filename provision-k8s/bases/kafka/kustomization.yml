@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+commonLabels:
+  tracegrapher-tier: kafka-broker
+
+resources:
+  - kafka-cluster.yml
+  - kafka-connect.yml
+  - connect-ui-deployment.yml
+  - connect-ui-service.yml
+  - kafka-topic.yml
+  - ingresses.yml

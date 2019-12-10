@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-nginx
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    - name: https
+      port: 443
+      targetPort: 443
+      protocol: TCP
+    - name: bolt
+      port: 7687
+      targetPort: 7687
+      protocol: TCP
+    - name: traces-zipkin
+      port: 9411
+      targetPort: 9411
+      protocol: TCP
+    - name: traces-grpc
+      port: 14250
+      targetPort: 14250
+      protocol: TCP
+    - name: traces-thrift
+      port: 14267
+      targetPort: 14267
+      protocol: TCP
+    - name: traces-http
+      port: 14268
+      targetPort: 14268
+      protocol: TCP

@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kafka-connect-api
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # nginx.ingress.kubernetes.io/configuration-snippet: |
+    #   proxy_set_header l5d-dst-override $service_name.$namespace.svc.cluster.local:$service_port;
+    #   grpc_set_header l5d-dst-override $service_name.$namespace.svc.cluster.local:$service_port;
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /api/kafka-connect-([0-9]+)(/|$)(.*)
+        backend:
+          serviceName: tracing-cluster-connect-ui
+          servicePort: http
+
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kafka-connect-ui
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header l5d-dst-override $service_name.$namespace.svc.cluster.local:$service_port;
+      grpc_set_header l5d-dst-override $service_name.$namespace.svc.cluster.local:$service_port;
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /kafka-connect(/|$)(.*)
+        backend:
+          serviceName: tracing-cluster-connect-ui
+          servicePort: http

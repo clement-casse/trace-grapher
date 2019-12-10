@@ -1,6 +1,8 @@
 # 
 APPLICATION_NS := trace-grapher
 
+OVERLAY := k3s-cluster
+
 # Strimzi Version Number as written in the Github Release page: https://github.com/strimzi/strimzi-kafka-operator/releases
 STRIMZI_VERSION := 0.15.0
 

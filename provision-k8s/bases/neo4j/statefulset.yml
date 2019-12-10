@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: neo4j
+spec:
+  selector:
+    matchLabels:
+      app: neo4j
+  serviceName: neo4j
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: neo4j
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: neo4j
+        image: razalgethi/trace-grapher-neo4j
+        ports:
+        - containerPort: 7474
+          name: web
+        - containerPort: 7687
+          name: bolt
+        env:
+        - name: NEO4J_AUTH
+          value: none
+        - name: NEO4J_apoc_ttl_enabled
+          value: "true"
+        - name: NEO4J_dbms_security_procedures_unrestricted
+          value: algo.*,apoc.*
+        - name: NEO4J_dbms_connector_bolt_tls__level
+          value: OPTIONAL
+        - name: NEO4J_dbms_connector_bolt_listen__address
+          value: 0.0.0.0:7687
+        - name: NEO4J_dbms_connector_http_listen__address
+          value: 0.0.0.0:7474
+        - name: NEO4J_dbms_cypher_min_replan_interval
+          value: 10s
+        volumeMounts:
+        - name: neo4j-data
+          mountPath: /data
+        readinessProbe:
+          tcpSocket:
+            port: 7687
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        livenessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: 7687
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+  volumeClaimTemplates:
+  - metadata:
+      name: "neo4j-data"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 2Gi
