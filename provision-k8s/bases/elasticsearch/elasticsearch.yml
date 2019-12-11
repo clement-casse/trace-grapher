@@ -8,44 +8,45 @@ spec:
     tls:
       selfSignedCertificate:
         disabled: true
+    service:
+      spec:
+        ports:
+        - name: http-es-api
+          port: 9200
+          targetPort: 9200
   nodeSets:
-    - name: default
-      count: 1
-      config:
-        node.master: true
-        node.data: true
-        node.ingest: true
-        node.store.allow_mmap: false   # TO DISABLE
-      podTemplate:
-        spec:
-          initContainers:
-            - name: sysctl
-              securityContext:
-                privileged: true
-              command: ['bash', '-c', 'sysctl -w vm.max_map_count=262144']
-            # - name: x-pack
-            #   securityContext:
-            #     privileged: true
-            #   command: ['bash', '-c', 'bin/elasticsearch-plugin remove x-pack']
-          containers:
-            - name: elasticsearch
-              env:
-                - name: ES_JAVA_OPS
-                  value: "-Xms1g -Xmx1g"
-              resources:
-                requests:
-                  memory: 2Gi
-                  cpu: "500m"
-                limits:
-                  memory: 2Gi
-                  cpu: "2"
-      volumeClaimTemplates:
-        - metadata:
-            name: elasticsearch-data
-          spec:
-            accessModes:
-              - ReadWriteOnce
-            resources:
-              requests:
-                storage: 5Gi
-            storageClassName: local-path
+  - name: default
+    count: 1
+    config:
+      node.master: true
+      node.data: true
+      node.ingest: true
+      node.store.allow_mmap: false   # TO DISABLE
+    podTemplate:
+      metadata:
+        annotations:
+          traffic.sidecar.istio.io/excludeOutboundPorts: "9300"
+          traffic.sidecar.istio.io/excludeInboundPorts: "9300"
+      spec:
+        containers:
+        - name: elasticsearch
+          env:
+          - name: ES_JAVA_OPS
+            value: "-Xms1g -Xmx1g"
+          resources:
+            requests:
+              memory: 2Gi
+              cpu: "500m"
+            limits:
+              memory: 2Gi
+              cpu: "2"
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+        storageClassName: local-path

@@ -8,11 +8,11 @@ CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 )
 
 .PHONY: configure-init install-operators install-components \
-	get-nginxIngress init-nginxIngress remove-nginxIngress \
 	get-strimzi init-strimzi remove-strimzi \
-	get-ECK     init-ECK     remove-ECK setup-es-auth-secret \
+	get-ECK     init-ECK     remove-ECK \
 	get-prometheus init-prometheus remove-prometheus \
 	get-linkerd init-linkerd remove-linkerd \
+	wait-for-es setup-es-auth-secret \
 	wipe purge
 
 
@@ -88,9 +88,12 @@ _init/ECK-operator:
 
 ## `init-ECK` Instanciate in the Kubernetes Cluster the Elastic Cloud Kubernetes Operator.
 ##            The Operator will be instanciated in its own namespace: "elastic-system"
+##            operator need to communicate with ES API so adding it to the Data-Plane
+##            Ref: https://github.com/elastic/cloud-on-k8s/issues/2064#issuecomment-547903913
 OPERATOR_INSTALL_TARGETS += init-ECK
 init-ECK: _init/ECK-operator
 	@kubectl apply -f $</all-in-one.yaml
+	@sleep 10 && kubectl label namespace elastic-system istio-injection=enabled --overwrite
 
 
 ## `remove-ECK` Removes the Elasctic Cloud Kubernetes Operator frome the cluster,
@@ -214,6 +217,12 @@ _init/istio-manifest.yaml:
 OPERATOR_REMOVAL_TARGETS += remove-istio
 remove-istio: _init/istio-manifest.yaml
 	@-kubectl delete -f $<
+	@-rm -rf $<
+
+
+wait-for-es: init-ECK
+	@kubectl wait 'pod/jaeger-tracing-backend-es-default-0' \
+		--for=condition=Ready --timeout=300s -n $(APPLICATION_NS)
 
 
 ## `elasticsearch-auth.yml` is the secret that hosts environment variables that will be used
@@ -221,9 +230,7 @@ remove-istio: _init/istio-manifest.yaml
 ##                          ElasticSearch cluster authentication parametters.
 ##                          This Target does not pushes the secret to the ES cluster, see `setup-es-auth-secret`
 elasticsearch-auth.yml: ES_USERNAME = elastic
-elasticsearch-auth.yml: elasticsearch-auth.yml.tmpl
-	@kubectl wait 'pod/jaeger-tracing-backend-es-default-0' \
-		--for=condition=Ready --timeout=300s -n $(APPLICATION_NS)
+elasticsearch-auth.yml: elasticsearch-auth.yml.tmpl wait-for-es
 	@ES_USERNAME_B64="$(shell printf '$(ES_USERNAME)' | base64)" \
 	ES_PASSWORD_B64="$(shell kubectl -n $(APPLICATION_NS) get secret jaeger-tracing-backend-es-elastic-user -o go-template='{{.data.elastic}}')" \
 	envsubst < $< > $@
