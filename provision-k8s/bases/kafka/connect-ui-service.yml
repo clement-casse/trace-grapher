@@ -7,7 +7,7 @@ spec:
   selector:
     app: tracing-cluster-connect-ui
   ports:
-    - name: http
+    - name: http-webui
       protocol: "TCP"
       port: 8000
       targetPort: 8000
