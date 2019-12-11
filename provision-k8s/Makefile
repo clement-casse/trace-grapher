@@ -32,27 +32,6 @@ configure-init:
 	@-kubectl create namespace $(APPLICATION_NS)
 
 
-get-nginxIngress: _init/nginx-ingresscontroller
-DOWNLOADED_OPERATORS += _init/nginx-ingresscontroller
-_init/nginx-ingresscontroller:
-	@echo "Downloading nginx Ingress Controller"
-	@mkdir -p $@
-	@curl --silent --location \
-		"https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml" \
-		> $@/mandatory.yaml
-
-
-OPERATOR_INSTALL_TARGETS += init-nginxIngress
-init-nginxIngress: _init/nginx-ingresscontroller
-	@kubectl apply -f $</mandatory.yaml
-
-
-
-OPERATOR_REMOVAL_TARGETS += remove-nginxIngress
-remove-nginxIngress: _init/nginx-ingresscontroller
-	@-kubectl delete -f $</mandatory.yaml
-
-
 ## `get-strimzi` Downloads Strimzy-Operator installation procedure for Kubernetes
 ##               these files are removed when the `purge` target is executed
 get-strimzi: _init/strimzi-operator
@@ -216,30 +195,25 @@ remove-prometheus: _init/prometheus-operator
 	@echo "Done !"
 
 
-## `get-linkerd` created the linkerd directory which has linkerd clients binaries
-##               it uses standard installation procedure but in the target directory
-##               these binaries are removed when the `purge` target is executed
-get-linkerd: _init/linkerd-servicemesh
-DOWNLOADED_OPERATORS += _init/linkerd-servicemesh
-_init/linkerd-servicemesh:
-	@echo "Downloading and installing Linkerd Client version $(LINKERD2_VERSION)"
-	@mkdir -p ./$@
-	@curl --silent --location "https://run.linkerd.io/install" \
-		| LINKERD2_VERSION="$(LINKERD2_VERSION)" INSTALLROOT="$(shell pwd)/$@" sh > /dev/null
-	@echo "Done !"
-LINKERD := $(shell pwd)/_init/linkerd-servicemesh/bin/linkerd
+
+get-istio: _init/istio-$(ISTIO_VERSION)/
+DOWNLOADED_OPERATORS += _init/istio-$(ISTIO_VERSION)/
+_init/istio-$(ISTIO_VERSION)/:
+	@cd _init/ && ISTIO_VERSION="$(ISTIO_VERSION)" curl -L https://istio.io/downloadIstio | sh -
+
+ISTIOCTL := $(shell cd _init/istio-$(ISTIO_VERSION)/bin/ && pwd)/istioctl
 
 
-OPERATOR_INSTALL_TARGETS += init-linkerd
-init-linkerd: _init/linkerd-servicemesh
-	$(LINKERD) install --ignore-cluster | kubectl apply -f -
-	$(LINKERD) check
-	kubectl -n linkerd get deploy
+init-istio: _init/istio-manifest.yaml
+OPERATOR_INSTALL_TARGETS += init-istio
+_init/istio-manifest.yaml:
+	$(ISTIOCTL) manifest apply --set profile=default
+	$(ISTIOCTL) manifest generate --set profile=default > $@
 
 
-OPERATOR_REMOVAL_TARGETS += remove-linkerd
-remove-linkerd:
-	@-$(LINKERD) install --ignore-cluster | kubectl delete -f -
+OPERATOR_REMOVAL_TARGETS += remove-istio
+remove-istio: _init/istio-manifest.yaml
+	@-kubectl delete -f $<
 
 
 ## `elasticsearch-auth.yml` is the secret that hosts environment variables that will be used
@@ -263,6 +237,8 @@ setup-es-auth-secret: elasticsearch-auth.yml
 
 ########------------------------------------------------------------------------------########
 
+get-operators: $(DOWNLOADED_OPERATORS)
+
 
 install-operators: $(OPERATOR_INSTALL_TARGETS)
 
@@ -272,12 +248,15 @@ install-components: configure-init
 	make setup-es-auth-secret
 
 
-gg: wipe # Alias for fun ...
-wipe:
+gg: remove-components # Alias for fun ...
+remove-components:
 	@-kubectl delete -k ./overlays/$(OVERLAY)
 	@-kubectl delete -f ./elasticsearch-auth.yml -n $(APPLICATION_NS)
 	@-rm -rf ./elasticsearch-auth.yml
 	@-kubectl delete namespace $(APPLICATION_NS)
 
 
-purge: wipe $(OPERATOR_REMOVAL_TARGETS)
+wipe: remove-components $(OPERATOR_REMOVAL_TARGETS)
+
+purge:
+	@-rm -rf $(DOWNLOADED_OPERATORS)

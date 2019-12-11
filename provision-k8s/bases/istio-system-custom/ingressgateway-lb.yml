@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: istio-ingressgateway
+  namespace: istio-system
+  labels:
+    app: istio-ingressgateway
+    release: istio
+    istio: ingressgateway
+spec:
+  type: LoadBalancer
+  selector:
+    app: istio-ingressgateway
+  ports:
+    -
+      name: status-port
+      port: 15020
+      targetPort: 15020
+    -
+      name: http2
+      port: 80
+      targetPort: 80
+    -
+      name: https
+      port: 443
+    -
+      name: bolt
+      port: 7687
+      targetPort: 7687
+    -
+      name: prometheus
+      port: 15030
+      targetPort: 15030
+    -
+      name: grafana
+      port: 15031
+      targetPort: 15031

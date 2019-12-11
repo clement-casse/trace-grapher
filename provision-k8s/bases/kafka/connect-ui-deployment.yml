@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tracing-cluster-connect-ui
-  annotations:
-    linkerd.io/inject: "enabled"
 
 spec:
   selector:

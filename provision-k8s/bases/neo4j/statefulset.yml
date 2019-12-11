@@ -3,8 +3,6 @@ kind: StatefulSet
 metadata:
   name: neo4j
   namespace: trace-grapher
-  annotations:
-    linkerd.io/inject: "enabled"
 
 spec:
   selector:
@@ -22,10 +20,10 @@ spec:
       - name: neo4j
         image: razalgethi/trace-grapher-neo4j
         ports:
-        - containerPort: 7474
-          name: web
-        - containerPort: 7687
-          name: bolt
+        - name: http-web
+          containerPort: 7474
+        - name: http-bolt
+          containerPort: 7687
         env:
         - name: NEO4J_AUTH
           value: none

@@ -12,4 +12,3 @@ resources:
   - connect-ui-deployment.yml
   - connect-ui-service.yml
   - kafka-topic.yml
-  - ingresses.yml

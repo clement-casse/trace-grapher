@@ -44,8 +44,6 @@ spec:
     #   schedule: "55 23 * * *"
 
   query:
-    annotations:
-      linkerd.io/inject: "enabled"
     options:
       query:
         base-path: /jaeger
@@ -55,5 +53,5 @@ spec:
       dependencies:
         menuEnabled: false
 
-  agent:
-    strategy: DaemonSet
+  ingress:
+    enabled: false

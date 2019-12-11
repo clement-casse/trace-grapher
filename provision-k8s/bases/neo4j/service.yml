@@ -10,7 +10,7 @@ spec:
   selector:
     app: neo4j
   ports:
-  - port: 7474
-    name: web
-  - port: 7687
-    name: bolt
+  - name: http-web
+    port: 7474
+  - name: http-bolt
+    port: 7687
