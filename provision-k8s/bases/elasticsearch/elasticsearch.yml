@@ -8,12 +8,6 @@ spec:
     tls:
       selfSignedCertificate:
         disabled: true
-    service:
-      spec:
-        ports:
-        - name: http-es-api
-          port: 9200
-          targetPort: 9200
   nodeSets:
   - name: default
     count: 1
@@ -21,12 +15,7 @@ spec:
       node.master: true
       node.data: true
       node.ingest: true
-      node.store.allow_mmap: false   # TO DISABLE
     podTemplate:
-      metadata:
-        annotations:
-          traffic.sidecar.istio.io/excludeOutboundPorts: "9300"
-          traffic.sidecar.istio.io/excludeInboundPorts: "9300"
       spec:
         containers:
         - name: elasticsearch

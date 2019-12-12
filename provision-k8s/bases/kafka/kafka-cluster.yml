@@ -6,15 +6,6 @@ metadata:
 spec:
   kafka:
     replicas: 1
-    template:
-      statefulset:
-        metadata:
-          annotations:
-            sidecar.istio.io/inject: "false"
-      pod:
-        metadata:
-          annotations:
-            sidecar.istio.io/inject: "false"
     listeners:
       plain: # Configures plain listener on port 9092.
         networkPolicyPeers: []
@@ -143,15 +134,6 @@ spec:
 
   zookeeper:
     replicas: 1
-    template:
-      statefulset:
-        metadata:
-          annotations:
-            sidecar.istio.io/inject: "false"
-      pod:
-        metadata:
-          annotations:
-            sidecar.istio.io/inject: "false"
     jvmOptions:
       -Xms: "128M"
       -Xmx: "128M"

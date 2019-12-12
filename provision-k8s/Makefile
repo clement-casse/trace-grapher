@@ -69,7 +69,7 @@ init-strimzi: _init/strimzi-operator configure-init
 ## `remove-strimzi` Deletes the Cluster Operator Deployment, the strimzi CRD and RBAC
 OPERATOR_REMOVAL_TARGETS += remove-strimzi
 remove-strimzi: _init/strimzi-operator
-	@-kubectl delete -f '$</install/cluster-operator'
+	@-kubectl delete -f '$</install/cluster-operator/' -n $(STRIMZI_OPERATOR_NS)
 	@-kubectl delete namespace $(STRIMZI_OPERATOR_NS)
 
 
@@ -93,7 +93,6 @@ _init/ECK-operator:
 OPERATOR_INSTALL_TARGETS += init-ECK
 init-ECK: _init/ECK-operator
 	@kubectl apply -f $</all-in-one.yaml
-	@sleep 10 && kubectl label namespace elastic-system istio-injection=enabled --overwrite
 
 
 ## `remove-ECK` Removes the Elasctic Cloud Kubernetes Operator frome the cluster,
@@ -204,20 +203,28 @@ DOWNLOADED_OPERATORS += _init/istio-$(ISTIO_VERSION)/
 _init/istio-$(ISTIO_VERSION)/:
 	@cd _init/ && ISTIO_VERSION="$(ISTIO_VERSION)" curl -L https://istio.io/downloadIstio | sh -
 
-ISTIOCTL := $(shell cd _init/istio-$(ISTIO_VERSION)/bin/ && pwd)/istioctl
+ISTIOCTL := $(realpath _init)/istio-$(ISTIO_VERSION)/bin/istioctl
 
 
-init-istio: _init/istio-manifest.yaml
+_init/istio-$(ISTIO_VERSION)/istio-manifest.yaml: get-istio
+	$(ISTIOCTL) manifest generate \
+		--set profile=default \
+		--set telemetry.enabled=false \
+		--set values.gateways.istio-ingressgateway.enabled=true \
+		--set values.global.tracer.zipkin.address=jaeger-streaming-collector.$(APPLICATION_NS):9411 \
+		--set values.pilot.traceSampling=1 \
+	> $@
+
+
 OPERATOR_INSTALL_TARGETS += init-istio
-_init/istio-manifest.yaml:
-	$(ISTIOCTL) manifest apply --set profile=default
-	$(ISTIOCTL) manifest generate --set profile=default > $@
+init-istio: _init/istio-$(ISTIO_VERSION)/istio-manifest.yaml
+	@kubectl apply -f $<
+	@kubectl wait 'deployment/istio-pilot' --for=condition=available --timeout=300s -n istio-system
 
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
-remove-istio: _init/istio-manifest.yaml
+remove-istio: _init/istio-$(ISTIO_VERSION)/istio-manifest.yaml
 	@-kubectl delete -f $<
-	@-rm -rf $<
 
 
 wait-for-es: init-ECK
@@ -252,7 +259,7 @@ install-operators: $(OPERATOR_INSTALL_TARGETS)
 
 install-components: configure-init
 	@kubectl apply -k ./overlays/$(OVERLAY)
-	make setup-es-auth-secret
+	@make setup-es-auth-secret
 
 
 gg: remove-components # Alias for fun ...

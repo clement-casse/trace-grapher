@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: neo4j
-  namespace: trace-grapher
 
 spec:
   selector:
