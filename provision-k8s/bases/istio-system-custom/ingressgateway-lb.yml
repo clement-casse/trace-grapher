@@ -2,7 +2,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: istio-ingressgateway
-  namespace: istio-system
   labels:
     app: istio-ingressgateway
     release: istio

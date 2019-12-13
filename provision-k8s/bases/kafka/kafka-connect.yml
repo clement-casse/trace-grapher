@@ -2,6 +2,8 @@ apiVersion: kafka.strimzi.io/v1beta1
 kind: KafkaConnect
 metadata:
   name: tracing-cluster
+  labels:
+    monitoredBy: prometheus
 
 spec:
   image: "razalgethi/trace-grapher-strimzi-kafka-connect"

@@ -64,6 +64,7 @@ init-strimzi: _init/strimzi-operator configure-init
 	@kubectl apply -f '$</install/cluster-operator/020-RoleBinding-strimzi-cluster-operator.yaml' -n $(APPLICATION_NS)
 	@kubectl apply -f '$</install/cluster-operator/032-RoleBinding-strimzi-cluster-operator-topic-operator-delegation.yaml' -n $(APPLICATION_NS)
 	@kubectl apply -f '$</install/cluster-operator/031-RoleBinding-strimzi-cluster-operator-entity-operator-delegation.yaml' -n $(APPLICATION_NS)
+	@kubectl wait 'deployment/strimzi-cluster-operator' --for=condition=available --timeout=300s -n $(STRIMZI_OPERATOR_NS)
 
 
 ## `remove-strimzi` Deletes the Cluster Operator Deployment, the strimzi CRD and RBAC
@@ -93,6 +94,7 @@ _init/ECK-operator:
 OPERATOR_INSTALL_TARGETS += init-ECK
 init-ECK: _init/ECK-operator
 	@kubectl apply -f $</all-in-one.yaml
+	@kubectl wait 'pod/elastic-operator-0' --for=condition=Ready --timeout=300s -n elastic-system
 
 
 ## `remove-ECK` Removes the Elasctic Cloud Kubernetes Operator frome the cluster,
@@ -140,6 +142,7 @@ init-jaeger: _init/jaeger-operator configure-init
 	@kubectl apply -f $</role.yaml
 	@kubectl apply -f $</role_binding.yaml
 	@kubectl apply -f $</operator.yaml
+	@kubectl wait 'deployment/jaeger-operator' --for=condition=available --timeout=300s -n $(JAEGER_OPERATOR_NS)
 
 
 OPERATOR_REMOVAL_TARGETS += remove-jaeger
@@ -184,6 +187,7 @@ init-prometheus: _init/prometheus-operator
 	@kubectl apply -f $</prometheus-operator-cluster-role.yaml
 	@kubectl apply -f $</prometheus-operator-cluster-role-binding.yaml
 	@kubectl apply -f $</prometheus-operator-service-account.yaml
+	@kubectl wait 'deployment/prometheus-operator' --for=condition=available --timeout=300s -n $(PROM_OPERATOR_NS)
 
 
 OPERATOR_REMOVAL_TARGETS += remove-prometheus
@@ -271,6 +275,8 @@ remove-components:
 
 
 wipe: remove-components $(OPERATOR_REMOVAL_TARGETS)
+	kubectl wait 'deployment/istio-policy'  --for=condition=terminated --timeout=300s -n istio-system
+	kubectl wait 'deployment/istio-citadel' --for=condition=terminated --timeout=300s -n istio-system
 
 purge:
 	@-rm -rf $(DOWNLOADED_OPERATORS)

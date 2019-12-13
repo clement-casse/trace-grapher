@@ -2,6 +2,8 @@ apiVersion: kafka.strimzi.io/v1beta1
 kind: Kafka
 metadata:
   name: tracing-cluster
+  labels:
+    monitoredBy: prometheus
 
 spec:
   kafka:

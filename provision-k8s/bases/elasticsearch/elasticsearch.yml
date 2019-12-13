@@ -15,6 +15,7 @@ spec:
       node.master: true
       node.data: true
       node.ingest: true
+      node.store.allow_mmap: true
     podTemplate:
       spec:
         containers:
