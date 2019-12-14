@@ -3,7 +3,7 @@ kind: Elasticsearch
 metadata:
   name: jaeger-tracing-backend
 spec:
-  version: 7.4.2
+  version: 7.5.0
   http:
     tls:
       selfSignedCertificate:

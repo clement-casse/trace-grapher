@@ -3,9 +3,10 @@ kind: Kustomization
 
 bases:
   - istio-system-custom
-  - neo4j
   - kafka
   - elasticsearch
+  - elastic-monitoring
+  - neo4j
   - jaeger
 
 resources:

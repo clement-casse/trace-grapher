@@ -8,4 +8,4 @@ namespace: trace-grapher
 
 resources:
   - elasticsearch.yml
-  - kibana.yml
+
