@@ -13,6 +13,19 @@ configMapGenerator:
   - name: filebeat-inputs
     files:
       - filebeat_conf/inputs.yml
+  - name: metricbeat-daemonset-config
+    files:
+      - metricbeat_daemonset_conf/metricbeat.yml
+  - name: metricbeat-daemonset-modules
+    files:
+      - metricbeat_daemonset_conf/kubernetes.yml
+      - metricbeat_daemonset_conf/system.yml
+  - name: metricbeat-deployment-config
+    files:
+      - metricbeat_deployment_conf/metricbeat.yml
+  - name: metricbeat-deployment-modules
+    files:
+      - metricbeat_deployment_conf/kubernetes.yml
 
 
 resources:
@@ -20,3 +33,6 @@ resources:
   - virtualservice.yml
   - filebeat-rbac.yml
   - filebeat-daemonset.yml
+  - metricbeat-rbac.yml
+  - metricbeat-daemonset.yml
+  - metricbeat-deployment.yml
