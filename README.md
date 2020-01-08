@@ -73,17 +73,22 @@ For the moment graph manipulation is done through Neo4j Web-UI, although the goa
 
 ### Dependencies
 
-To run `make` some tools need to be installed :
+To deploy the stack, either on the local machine (with `docker-compose`) or on a Kubernetes Cluster, the machine needs to have docker installed.
+Indeed, all build / deployment tools are embedded in a docker image, this image requires
 
-- `curl` Most of the time already installed on the machine or available on most of the package managers (`apt`, `brew`, ...)
-- `sed` Most of the time already installed on the machine or available on most of the package managers (`apt`, `brew`, ...)
-- `docker` can be installed following the [official Docker documentation](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
-- `docker-compose` can be installed following the [official `docker-compose` documentation](https://docs.docker.com/compose/install/)
-- `jq` a [command line tool to decode json](https://stedolan.github.io/jq/), available on most of the package managers (`apt`, `brew`, ...)
-- `yq` a [command line tool to decode YAML](https://github.com/mikefarah/yq) if you want tu use K8S deployment.
-- `envsubst` from [gettext](https://www.gnu.org/software/gettext/), use your package manager to install `gettext`.
+    - either to bind `/var/run/docker.sock` for a local deployment
+    - either to have the kube-config file mounted as the file `/root/.kube/config` in the container
 
-> When using `make`, it should complain when these executable are not found in your `$PATH`
+To be able to run make, start a shell in the container that has all tools to run the Makefiles :
+
+```sh
+docker-compose run stack-builder
+# now a shell pops as root in the project directory of the `stack-builder` container
+
+make # add whatever target you want
+```
+
+> Automatic build is still WIP
 
 ### Launch the stack locally with `docker-compose`
 

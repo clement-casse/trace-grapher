@@ -37,14 +37,14 @@ wait-for-kafka-connect-api:
 
 
 REQUEST_DATA_FILES += neo4j-api/request-data.json
-neo4j-api/request-data.json: CYPHER_CMD = $(shell cat -s init-neo4j.cypher | sed -e 's|//.*$$||g' -e 's|"|\\\\\\"|g' | tr -s '[:space:]' ' ' )
+neo4j-api/request-data.json: CYPHER_CMD = $(shell cat init-neo4j.cypher | sed -e 's|//.*$$||g' -e 's|"|\\\\\\"|g' | tr -s '[:space:]' ' ' )
 neo4j-api/request-data.json: neo4j-api/request.tmpl
 	@CYPHER_CMD="$(CYPHER_CMD)" envsubst < $< > $@
 	@echo File "$@" created
 
 
 REQUEST_DATA_FILES += kafka-connect/request-data.json
-kafka-connect/request-data.json: CYPHER_CMD = $(shell cat -s trace-to-graph-mapping.cypher | sed -e 's|//.*$$||g' -e 's|"|\\\\\\"|g' | tr -s '[:space:]' ' ' )
+kafka-connect/request-data.json: CYPHER_CMD = $(shell cat trace-to-graph-mapping.cypher | sed -e 's|//.*$$||g' -e 's|"|\\\\\\"|g' | tr -s '[:space:]' ' ' )
 kafka-connect/request-data.json: NEO4J_HOST = neo4j
 kafka-connect/request-data.json: kafka-connect/request.tmpl
 	@CYPHER_CMD="$(CYPHER_CMD)" NEO4J_HOST="$(NEO4J_HOST)" envsubst < $< > $@

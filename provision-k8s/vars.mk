@@ -10,7 +10,6 @@ JAEGER_OPERATOR_VERSION := v1.15.1
 
 # Namespace for the Strimzi Kafka Cluster Operator.
 STRIMZI_OPERATOR_NS := kafka-operator
-PROM_OPERATOR_NS := prometheus-operator
 JAEGER_OPERATOR_NS := jaeger-operator
 ECK_VERSION := 1.0.0-beta1
 

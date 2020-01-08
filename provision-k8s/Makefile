@@ -7,17 +7,20 @@ CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 	$(if $(shell which $(exec)), "$(exec) found", $(error "The tool $(exec) cannot be found in PATH")) \
 )
 
-.PHONY: configure-init install-operators install-components \
+.PHONY: configure-init \
 	get-strimzi init-strimzi remove-strimzi \
 	get-ECK     init-ECK     remove-ECK \
-	get-prometheus init-prometheus remove-prometheus \
-	get-linkerd init-linkerd remove-linkerd \
+	get-jaeger  init-jaeger  remove-jaeger \
+	get-istio   init-istio   remove-istio \
 	wait-for-es setup-es-auth-secret \
+	get-operators install-operators install-components remove-components \
 	wipe purge
 
 
 all: \
 	install-operators \
+	wait-for-es \
+	setup-es-auth-secret \
 	install-components
 
 
@@ -52,7 +55,7 @@ OPERATOR_INSTALL_TARGETS += init-strimzi
 init-strimzi: _init/strimzi-operator configure-init
 	@-kubectl create namespace $(STRIMZI_OPERATOR_NS)
 	@echo "Changing namespace references in YAML files."
-	@sed -i '' 's/namespace: .*/namespace: $(STRIMZI_OPERATOR_NS)/' $</install/cluster-operator/*RoleBinding*.yaml
+	@sed -i 's/namespace: .*/namespace: $(STRIMZI_OPERATOR_NS)/' $</install/cluster-operator/*RoleBinding*.yaml
 	@yq delete --inplace \
 		'$</install/cluster-operator/050-Deployment-strimzi-cluster-operator.yaml' \
 		'spec.template.spec.containers[0].env[0].valueFrom'
@@ -127,10 +130,10 @@ _init/jaeger-operator:
 		> $@/operator.yaml
 	@echo "Done !"
 	@echo "Changing namespace references in YAML files."
-	@sed -i '' 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/service_account.yaml
-	@sed -i '' 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/role.yaml
-	@sed -i '' 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/role_binding.yaml
-	@sed -i '' 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/operator.yaml
+	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/service_account.yaml
+	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/role.yaml
+	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/role_binding.yaml
+	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/operator.yaml
 	@echo "Done !"
 
 
@@ -153,53 +156,6 @@ remove-jaeger: _init/jaeger-operator
 	@-kubectl delete -f $</service_account.yaml
 	@-kubectl delete -f $</jaegertracing.io_jaegers_crd.yaml
 	@-kubectl delete namespace $(JAEGER_OPERATOR_NS)
-
-
-get-prometheus: _init/prometheus-operator
-DOWNLOADED_OPERATORS += _init/prometheus-operator
-_init/prometheus-operator:
-	@mkdir -p $@
-	@echo "Downloading CoreOS Prometheus Operator"
-	@curl --silent \
-		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-deployment.yaml \
-		> $@/prometheus-operator-deployment.yaml
-	@curl --silent \
-		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml \
-		> $@/prometheus-operator-cluster-role.yaml
-	@curl --silent \
-		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-cluster-role-binding.yaml \
-		> $@/prometheus-operator-cluster-role-binding.yaml
-	@curl --silent \
-		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-service-account.yaml \
-		> $@/prometheus-operator-service-account.yaml
-	@echo "Done !"
-	@echo "Changing namespace references in YAML files."
-	@sed -i '' 's/namespace: .*/namespace: $(PROM_OPERATOR_NS)/' $@/prometheus-operator-deployment.yaml
-	@sed -i '' 's/namespace: .*/namespace: $(PROM_OPERATOR_NS)/' $@/prometheus-operator-cluster-role-binding.yaml
-	@sed -i '' 's/namespace: .*/namespace: $(PROM_OPERATOR_NS)/' $@/prometheus-operator-service-account.yaml
-	@echo "Done !"
-
-
-OPERATOR_INSTALL_TARGETS += init-prometheus
-init-prometheus: _init/prometheus-operator
-	@-kubectl create namespace $(PROM_OPERATOR_NS)
-	@kubectl apply -f $</prometheus-operator-deployment.yaml
-	@kubectl apply -f $</prometheus-operator-cluster-role.yaml
-	@kubectl apply -f $</prometheus-operator-cluster-role-binding.yaml
-	@kubectl apply -f $</prometheus-operator-service-account.yaml
-	@kubectl wait 'deployment/prometheus-operator' --for=condition=available --timeout=300s -n $(PROM_OPERATOR_NS)
-
-
-OPERATOR_REMOVAL_TARGETS += remove-prometheus
-remove-prometheus: _init/prometheus-operator
-	@echo "Removing Prometheus Operator ..."
-	@-kubectl delete -f $</prometheus-operator-service-account.yaml
-	@-kubectl delete -f $</prometheus-operator-cluster-role-binding.yaml
-	@-kubectl delete -f $</prometheus-operator-cluster-role.yaml
-	@-kubectl delete -f $</prometheus-operator-deployment.yaml
-	@-kubectl delete namespace $(PROM_OPERATOR_NS)
-	@echo "Done !"
-
 
 
 get-istio: _init/istio-$(ISTIO_VERSION)/
