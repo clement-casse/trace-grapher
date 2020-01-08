@@ -76,8 +76,8 @@ For the moment graph manipulation is done through Neo4j Web-UI, although the goa
 To deploy the stack, either on the local machine (with `docker-compose`) or on a Kubernetes Cluster, the machine needs to have docker installed.
 Indeed, all build / deployment tools are embedded in a docker image, this image requires
 
-    - either to bind `/var/run/docker.sock` for a local deployment
-    - either to have the kube-config file mounted as the file `/root/.kube/config` in the container
+- either to bind `/var/run/docker.sock` for a local deployment
+- either to have the kube-config file mounted as the file `/root/.kube/config` in the container
 
 To be able to run make, start a shell in the container that has all tools to run the Makefiles :
 
