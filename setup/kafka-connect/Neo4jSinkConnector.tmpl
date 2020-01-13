@@ -1,8 +1,8 @@
 {
-    "name": "Neo4jSinkConnector",
+    "name": "${ENTITY_NAME}SinkConnector",
     "config": {
-        "name": "Neo4jSinkConnector",
         "topics": "jaeger-spans",
+        "group.id": "${ENTITY_NAME}Consumer",
         "connector.class": "streams.kafka.connect.sink.Neo4jSinkConnector",
         "tasks.max": "5",
         "errors.retry.timeout": "-1",

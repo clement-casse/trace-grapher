@@ -16,7 +16,7 @@ SILENT_OPTS := --silent $(API_HEADERS_OPT)
 GET_CODE_OPT := -o /dev/null --write-out '%{http_code}' $(SILENT_OPTS)
 
 
-.PHONY: setup-kafka-neo4j-connector setup-neo4j-schema wait-for-neo4j-api wait-for-kafka-connect-api clean
+.PHONY: setup-kafka-neo4j-connectors setup-neo4j-schema wait-for-neo4j-api wait-for-kafka-connect-api clean
 
 wait-for-neo4j-api:
 	@echo Waiting Neo4j HTTP API to be available ...
@@ -43,32 +43,33 @@ neo4j-api/request-data.json: neo4j-api/request.tmpl
 	@echo File "$@" created
 
 
-REQUEST_DATA_FILES += kafka-connect/request-data.json
-kafka-connect/request-data.json: CYPHER_CMD = $(shell cat trace-to-graph-mapping.cypher | sed -e 's|//.*$$||g' -e 's|"|\\\\\\"|g' | tr -s '[:space:]' ' ' )
-kafka-connect/request-data.json: NEO4J_HOST = neo4j
-kafka-connect/request-data.json: kafka-connect/request.tmpl
-	@CYPHER_CMD="$(CYPHER_CMD)" NEO4J_HOST="$(NEO4J_HOST)" envsubst < $< > $@
-	@echo File "$@" created
-
-
 setup-neo4j-schema: neo4j-api/request-data.json
 	@make wait-for-neo4j-api
 	@curl $(SILENT_OPTS) -X POST -d "@$<" $(NEO4J_HTTP_ENDPOINT)/data/transaction/commit | jq .errors
 	@echo Done !
 
 
-setup-kafka-neo4j-connector: CONNECTOR_NAME = $(shell cat $< | jq -r .name)
-setup-kafka-neo4j-connector: kafka-connect/request-data.json
-	@make wait-for-kafka-connect-api
-	@if curl $(SILENT_OPTS) -X GET $(KAFKA_CONNECT_ENDPOINT)/connectors | grep "$(CONNECTOR_NAME)" ; then \
-		echo "The Connector $(CONNECTOR_NAME) is already known by Kafka-Connect, Deleting it !"; \
-		curl --silent -o /dev/null $(API_HEADERS_OPT) -X DELETE $(KAFKA_CONNECT_ENDPOINT)/connectors/$(CONNECTOR_NAME); \
-		sleep 2; \
-	fi; \
-	echo 'Adding connector "$(CONNECTOR_NAME)" to Kafka-connect.' ; \
-	curl $(SILENT_OPTS) -X POST -d "@$<" $(KAFKA_CONNECT_ENDPOINT)/connectors | jq -r .name ; \
-	echo Done !
+REQUEST_DATA_FILES += kafka-connect/connectors/*.json
+kafka-connect/connectors/%.json: kafka-connect/connectors/%.cypher kafka-connect/Neo4jSinkConnector.tmpl
+	@CYPHER_CMD="$(shell cat $< | sed -e 's|//.*$$||g' -e 's|"|\\\\\\"|g' | tr -s '[:space:]' ' ' )" \
+	NEO4J_HOST="neo4j" \
+	ENTITY_NAME="$(notdir $(basename $<))" \
+	envsubst < kafka-connect/Neo4jSinkConnector.tmpl > $@
+	@echo File "$@" created
 
+
+setup-kafka-neo4j-connectors: $(addprefix kafka-connect/connectors/,$(addsuffix .json,$(shell cd kafka-connect/connectors/; ls *.cypher | cut -d '.' -f 1)))
+	@make wait-for-kafka-connect-api
+	@for connector in $^; do \
+		if curl $(SILENT_OPTS) -X GET $(KAFKA_CONNECT_ENDPOINT)/connectors | grep "$$(cat $$connector | jq -r .name)" ; then \
+			echo "The Connector $$(cat $$connector | jq -r .name) is already known by Kafka-Connect, Deleting it !"; \
+			curl --silent -o /dev/null $(API_HEADERS_OPT) -X DELETE "$(KAFKA_CONNECT_ENDPOINT)/connectors/$$(cat $$connector | jq -r .name)"; \
+			sleep 2; \
+		fi; \
+		echo "Adding connector '$$(cat $$connector | jq -r .name)' to Kafka-connect." ; \
+		curl $(SILENT_OPTS) -X POST -d "@$$connector" "$(KAFKA_CONNECT_ENDPOINT)/connectors" | jq -r .name ; \
+		echo "Done !"; \
+	done;
 
 clean:
 	rm -rf $(REQUEST_DATA_FILES)
