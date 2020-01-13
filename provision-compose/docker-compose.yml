@@ -341,7 +341,7 @@ services:
   ##
   neo4j:
     build:
-      context: ../build-images//neo4j/
+      context: ../build-images/neo4j/
       dockerfile: Dockerfile
       args:
         neo4j_streams_release: "3.5.4"

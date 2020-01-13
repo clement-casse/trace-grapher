@@ -1,4 +1,7 @@
 # Docker-compose file used for reference to wrap the launch lauch of the deployment image
+# ```
+# docker-compose run stack-builder
+# ```
 
 version: '3.7'
 

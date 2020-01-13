@@ -18,6 +18,7 @@ spec:
       containers:
       - name: neo4j
         image: razalgethi/trace-grapher-neo4j
+        imagePullPolicy: Always
         ports:
         - name: http-web
           containerPort: 7474
