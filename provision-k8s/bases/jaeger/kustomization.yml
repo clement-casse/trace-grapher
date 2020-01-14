@@ -11,4 +11,5 @@ namespace: trace-grapher
 
 resources:
   - jaeger.yml
+  - tracing-lb.yml
   - virtualservice.yml
