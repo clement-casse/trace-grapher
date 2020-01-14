@@ -3,6 +3,9 @@ kind: Kustomization
 
 namespace: istio-system
 
+# bases:
+#   - generated_manifest
+
 resources:
   - ingressgateway-lb.yml
 

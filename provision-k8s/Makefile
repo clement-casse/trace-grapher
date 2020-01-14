@@ -97,6 +97,7 @@ _init/ECK-operator:
 OPERATOR_INSTALL_TARGETS += init-ECK
 init-ECK: _init/ECK-operator
 	@kubectl apply -f $</all-in-one.yaml
+	@sleep 5
 	@kubectl wait 'pod/elastic-operator-0' --for=condition=Ready --timeout=300s -n elastic-system
 
 
@@ -166,24 +167,25 @@ _init/istio-$(ISTIO_VERSION)/:
 ISTIOCTL := $(realpath _init)/istio-$(ISTIO_VERSION)/bin/istioctl
 
 
-_init/istio-$(ISTIO_VERSION)/istio-manifest.yaml: get-istio
+bases/istio-system-custom/generated_manifest/istio-manifest.yaml: get-istio
+	@rm -rf '$@'
 	$(ISTIOCTL) manifest generate \
 		--set profile=default \
 		--set telemetry.enabled=false \
 		--set values.gateways.istio-ingressgateway.enabled=true \
-		--set values.global.tracer.zipkin.address=jaeger-streaming-collector.$(APPLICATION_NS):9411 \
-		--set values.pilot.traceSampling=1 \
+		--set values.global.tracer.zipkin.address="jaeger-streaming-collector.$(APPLICATION_NS).svc.cluster.local:9411" \
+		--set values.pilot.traceSampling=100 \
 	> $@
 
 
 OPERATOR_INSTALL_TARGETS += init-istio
-init-istio: _init/istio-$(ISTIO_VERSION)/istio-manifest.yaml
+init-istio: bases/istio-system-custom/generated_manifest/istio-manifest.yaml
 	@kubectl apply -f $<
 	@kubectl wait 'deployment/istio-pilot' --for=condition=available --timeout=300s -n istio-system
 
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
-remove-istio: _init/istio-$(ISTIO_VERSION)/istio-manifest.yaml
+remove-istio: bases/istio-system-custom/generated_manifest/istio-manifest.yaml
 	@-kubectl delete -f $<
 
 
