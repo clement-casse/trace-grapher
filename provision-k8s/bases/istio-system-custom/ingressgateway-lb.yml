@@ -23,6 +23,10 @@ spec:
       name: https
       port: 443
     -
+      name: http2-exp
+      port: 8080
+      targetPort: 8080
+    -
       name: bolt
       port: 7687
       targetPort: 7687
