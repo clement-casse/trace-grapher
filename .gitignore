@@ -1,4 +1,5 @@
-setup/kafka-connect/connectors/*.json
+setup/**/*.json
+**/istio-manifest.yaml
 provision-compose/neo4j/logs/*.log
 provision-k8s/_init/**/*
 !provision-k8s/_init/README.md
