@@ -4,13 +4,14 @@ kind: Kustomization
 bases:
   - ../../bases
 
-configMapGenerator:
-  - name: filebeat-inputs
-    behavior: replace
-    files:
-      - filebeat_conf/inputs.yml
+# configMapGenerator:
+#   - name: filebeat-inputs
+#     behavior: replace
+#     files:
+#       - filebeat_conf/inputs.yml
 
 patchesStrategicMerge:
+  - almond-tuning.yml
   - kafka-tuning.yml
   - neo4j-tuning.yml
   - elasticsearch-tuning.yml

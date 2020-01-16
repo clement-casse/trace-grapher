@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: almond
+
+spec:
+  selector:
+    matchLabels:
+      app: almond
+  serviceName: almond
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: almond
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: almond
+        image: almondsh/almond:0.9.0-scala-2.12.10
+        imagePullPolicy: Always
+        ports:
+        - name: http-web
+          containerPort: 8888
+        env:
+          - name: JUPYTER_ENABLE_LAB
+            value: 'yes'
+        command: [
+          "start-notebook.sh",
+          "--NotebookApp.base_url=/jupyter"
+        ]
+        volumeMounts:
+        - name: almond-data
+          mountPath: /home/jovyan/work
+        readinessProbe:
+          tcpSocket:
+            port: 8888
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        livenessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: 8888
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+  volumeClaimTemplates:
+  - metadata:
+      name: almond-data
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 1Gi

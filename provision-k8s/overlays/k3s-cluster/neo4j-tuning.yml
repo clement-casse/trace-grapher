@@ -11,7 +11,7 @@ spec:
         resources:
           requests:
             cpu: "500m"
-            memory: "2Gi"
+            memory: "6Gi"
           limits:
             cpu: "2"
             memory: "8Gi"
@@ -26,7 +26,6 @@ spec:
           value: 2G
         - name: NEO4J_dbms_tx__log_rotation_retention__policy
           value: 2 days
-
   volumeClaimTemplates:
   - metadata:
       name: "neo4j-data"

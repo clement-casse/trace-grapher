@@ -3,11 +3,6 @@ kind: Kustomization
 
 bases:
   - istio-system-custom
-  - kafka
-  - elasticsearch
-  - elastic-monitoring
-  - neo4j
-  - jaeger
-
-resources:
-  - ingressgateway.yml
+  - jaeger-tracing
+  - trace-grapher
+#  - elastic-monitoring

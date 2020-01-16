@@ -6,7 +6,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: filebeat
-  namespace: trace-grapher
+  namespace: elastic-monitoring
 roleRef:
   kind: ClusterRole
   name: filebeat

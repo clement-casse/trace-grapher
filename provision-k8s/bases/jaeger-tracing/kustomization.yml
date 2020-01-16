@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: jaeger-tracing-stack
+
+resources:
+  - gateway.yml
+  - kafka-cluster.yml
+  - kafka-topic.yml
+  - elasticsearch.yml
+  - jaeger.yml
+  - tracing-lb.yml
+  - virtualservice.yml

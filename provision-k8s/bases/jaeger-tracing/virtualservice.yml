@@ -6,7 +6,7 @@ spec:
   hosts:
   - "*"
   gateways:
-  - tracegrapher-gateway
+  - jaeger-tracing-gateway
   http:
   - match:
     - uri:

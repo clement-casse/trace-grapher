@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: almond
+  labels:
+    app: almond
+spec:
+  type: ClusterIP
+  selector:
+    app: almond
+  ports:
+  - name: http-web
+    port: 8888

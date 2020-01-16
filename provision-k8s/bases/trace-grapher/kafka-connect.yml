@@ -9,7 +9,7 @@ spec:
   image: "razalgethi/trace-grapher-strimzi-kafka-connect"
   version: 2.3.0
   replicas: 1
-  bootstrapServers: tracing-cluster-kafka-bootstrap:9092
+  bootstrapServers: tracing-cluster-kafka-bootstrap.jaeger-tracing-stack.svc.cluster.local:9092
   jvmOptions:
     -Xms: "256M"
     -Xmx: "256M"
@@ -31,27 +31,8 @@ spec:
     value.converter: "org.apache.kafka.connect.json.JsonConverter"
     internal.key.converter: "org.apache.kafka.connect.json.JsonConverter"
     internal.value.converter: "org.apache.kafka.connect.json.JsonConverter"
-  tracing:
-    type: jaeger
   logging:
     type: inline
-  template:
-    deployment:
-      metadata:
-        annotations:
-          "sidecar.jaegertracing.io/inject": "true"
-    connectContainer:
-      env:
-      - name: JAEGER_SERVICE_NAME
-        value: tracing-cluster-connect
-      - name: JAEGER_AGENT_HOST
-        value: localhost
-      - name: JAEGER_AGENT_PORT
-        value: "6831"
-      - name: JAEGER_SAMPLER_TYPE
-        value: const
-      - name: JAEGER_SAMPLER_PARAM
-        value: "1"
   metrics:
     lowercaseOutputName: true
     lowercaseOutputLabelNames: true
