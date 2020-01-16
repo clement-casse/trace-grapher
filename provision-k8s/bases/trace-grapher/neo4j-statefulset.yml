@@ -22,7 +22,7 @@ spec:
         ports:
         - name: http-web
           containerPort: 7474
-        - name: http-bolt
+        - name: tcp-bolt
           containerPort: 7687
         env:
         - name: NEO4J_AUTH

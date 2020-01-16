@@ -11,5 +11,5 @@ spec:
   ports:
   - name: http-web
     port: 7474
-  - name: http-bolt
+  - name: tcp-bolt
     port: 7687
