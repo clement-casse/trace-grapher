@@ -2,11 +2,22 @@ FROM strimzi/kafka:latest-kafka-2.4.0
 
 ARG neo4j_streams_release=3.5.4
 ARG kafka_connect_neo4j_version=1.0.4
+ARG kafka_connect_jdbc_version=5.4.0
 
 USER root:root
 
 WORKDIR /opt/kafka/plugins/
 
+RUN set -eux; \
+    mkdir -p /opt/confluent-hub/; \
+    curl -SsL http://client.hub.confluent.io/confluent-hub-client-latest.tar.gz \
+        | tar --extract --gzip --directory="/opt/confluent-hub/" \
+    ; \
+    /opt/confluent-hub/bin/confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:${kafka_connect_jdbc_version}; \
+    mv /opt/confluent-hub/share/confluent-hub-components/* $(pwd); \
+    rm -rf /opt/confluent-hub/;
+
+# Special installation Process for Neo4j sink because confluent hub does not have the last tag
 RUN set -eux; \
     yum install -y unzip; \
     curl -SsL \
