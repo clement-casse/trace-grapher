@@ -25,6 +25,41 @@ spec:
         env:
           - name: JUPYTER_ENABLE_LAB
             value: 'yes'
+          - name: JUPYTER_PASSWORD_SHA1
+            valueFrom:
+              secretKeyRef:
+                name: almond-env
+                key: JUPYTER_PASSWORD_SHA1
+          - name: HTTP_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: almond-env
+                key: HTTP_PROXY
+          - name: HTTPS_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: almond-env
+                key: HTTPS_PROXY
+          - name: NO_PROXY
+            valueFrom:
+              secretKeyRef:
+                name: almond-env
+                key: NO_PROXY
+          - name: http_proxy
+            valueFrom:
+              secretKeyRef:
+                name: almond-env
+                key: HTTP_PROXY
+          - name: https_proxy
+            valueFrom:
+              secretKeyRef:
+                name: almond-env
+                key: HTTPS_PROXY
+          - name: no_proxy
+            valueFrom:
+              secretKeyRef:
+                name: almond-env
+                key: NO_PROXY
         command: [
           "start-notebook.sh",
           "--NotebookApp.base_url=/jupyter"

@@ -16,8 +16,6 @@ spec:
             cpu: "2"
             memory: "8Gi"
         env:
-        - name: NEO4J_AUTH
-          value: none
         - name: NEO4J_dbms_memory_heap_initial__size
           value: 2G
         - name: NEO4J_dbms_memory_heap_max__size
@@ -36,3 +34,12 @@ spec:
       resources:
         requests:
           storage: 20Gi
+  - metadata:
+      name: "neo4j-plugins"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 500Mi

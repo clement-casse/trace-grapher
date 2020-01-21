@@ -5,8 +5,6 @@ namespace: jaeger-tracing-stack
 
 resources:
   - gateway.yml
-  - kafka-cluster.yml
-  - kafka-topic.yml
   - elasticsearch.yml
   - jaeger.yml
   - tracing-lb.yml

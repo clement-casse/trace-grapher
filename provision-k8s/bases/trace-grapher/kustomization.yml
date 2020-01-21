@@ -3,13 +3,26 @@ kind: Kustomization
 
 namespace: trace-grapher
 
+secretGenerator:
+  - name: neo4j-env
+    literals:
+      - NEO4J_AUTH=GorgeousPassword
+  - name: almond-env
+    literals:
+      - JUPYTER_PASSWORD_SHA1=sha1:7ebf6567d6cf:19345de3e61d863b60fb79060f6ea9facaf965a9 # = 'password'
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY=localhost,127.0.0.1
+
 resources:
   - almond-service.yml
   - almond-statefulset.yml
   - connect-ui-deployment.yml
   - connect-ui-service.yml
   - gateway.yml
+  - kafka-cluster.yml
   - kafka-connect.yml
+  - kafka-topic.yml
   - neo4j-service.yml
   - neo4j-statefulset.yml
   - virtualservice.yml

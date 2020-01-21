@@ -33,6 +33,7 @@ OPERATOR_REMOVAL_TARGETS :=
 configure-init:
 	@echo "Eventually creating Namespace: $(APPLICATION_NS) $(ELASTIC_STACK_NS) and $(JAEGER_STACK_NS)"
 	@-kubectl create namespace "$(APPLICATION_NS)"
+	@-kubectl label  namespace "$(APPLICATION_NS)" istio-injection=disabled
 	@-kubectl create namespace "$(ELASTIC_STACK_NS)"
 	@-kubectl create namespace "$(JAEGER_STACK_NS)"
 
@@ -229,17 +230,22 @@ install-components: configure-init
 	@make setup-es-auth-secret
 
 
-gg: remove-components # Alias for fun ...
+gg:
+	@-kubectl delete -k ./bases/trace-grapher/
+	@-kubectl delete namespace $(APPLICATION_NS)
+
 remove-components:
 	@-kubectl delete -k ./overlays/$(OVERLAY)
 	@-kubectl delete -f ./elasticsearch-auth.yml -n $(APPLICATION_NS)
 	@-rm -rf ./elasticsearch-auth.yml
 	@-kubectl delete namespace $(APPLICATION_NS)
+	@-kubectl delete namespace "$(ELASTIC_STACK_NS)"
+	@-kubectl delete namespace "$(JAEGER_STACK_NS)"
 
 
 wipe: remove-components $(OPERATOR_REMOVAL_TARGETS)
-	kubectl wait 'deployment/istio-policy'  --for=condition=terminated --timeout=300s -n istio-system
-	kubectl wait 'deployment/istio-citadel' --for=condition=terminated --timeout=300s -n istio-system
+	@-kubectl wait 'deployment/istio-policy'  --for=condition=terminated --timeout=300s -n istio-system
+	@-kubectl wait 'deployment/istio-citadel' --for=condition=terminated --timeout=300s -n istio-system
 
 purge:
 	@-rm -rf $(DOWNLOADED_OPERATORS)

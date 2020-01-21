@@ -13,6 +13,6 @@ spec:
         prefix: /jaeger
     route:
     - destination:
-        host: jaeger-streaming-query
+        host: jaeger-query
         port:
           number: 16686

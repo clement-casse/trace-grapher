@@ -26,7 +26,10 @@ spec:
           containerPort: 7687
         env:
         - name: NEO4J_AUTH
-          value: none
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-env
+              key: NEO4J_AUTH
         - name: NEO4J_apoc_ttl_enabled
           value: "true"
         - name: NEO4J_dbms_security_procedures_unrestricted
@@ -42,6 +45,8 @@ spec:
         volumeMounts:
         - name: neo4j-data
           mountPath: /data
+        - name: neo4j-plugins
+          mountPath: /var/lib/neo4j/plugins
         readinessProbe:
           tcpSocket:
             port: 7687
@@ -68,3 +73,12 @@ spec:
       resources:
         requests:
           storage: 2Gi
+  - metadata:
+      name: "neo4j-plugins"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: hostpath
+      resources:
+        requests:
+          storage: 100Mi

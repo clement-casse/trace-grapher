@@ -9,7 +9,7 @@ spec:
   image: "razalgethi/trace-grapher-strimzi-kafka-connect"
   version: 2.4.0
   replicas: 1
-  bootstrapServers: tracing-cluster-kafka-bootstrap.jaeger-tracing-stack.svc.cluster.local:9092
+  bootstrapServers: tracing-cluster-kafka-bootstrap:9092
   jvmOptions:
     -Xms: "256M"
     -Xmx: "256M"

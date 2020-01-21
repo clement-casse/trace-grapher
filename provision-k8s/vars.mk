@@ -10,7 +10,7 @@ ECK_VERSION := 1.0.0-rc6
 ISTIO_VERSION := 1.4.3
 
 # Namespaces
-STRIMZI_OPERATOR_NS := kafka-operator
-JAEGER_OPERATOR_NS := jaeger-operator
+STRIMZI_OPERATOR_NS := strimzi-system
+JAEGER_OPERATOR_NS := jaeger-system
 JAEGER_STACK_NS := jaeger-tracing-stack
 ELASTIC_STACK_NS := elastic-monitoring-stack

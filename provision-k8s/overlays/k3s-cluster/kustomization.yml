@@ -10,6 +10,17 @@ bases:
 #     files:
 #       - filebeat_conf/inputs.yml
 
+secretGenerator:
+  - name: neo4j-env
+    behavior: replace
+    namespace: trace-grapher
+    env: neo4j.env
+
+  - name: almond-env
+    behavior: replace
+    namespace: trace-grapher
+    env: almond.env
+ 
 patchesStrategicMerge:
   - almond-tuning.yml
   - kafka-tuning.yml
