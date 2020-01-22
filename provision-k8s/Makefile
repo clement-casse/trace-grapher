@@ -179,7 +179,7 @@ bases/istio-system-custom/generated_manifest/istio-manifest.yaml: get-istio
 		--set profile=default \
 		--set telemetry.enabled=false \
 		--set values.gateways.istio-ingressgateway.enabled=true \
-		--set values.global.tracer.zipkin.address="jaeger-streaming-collector.$(JAEGER_STACK_NS).svc.cluster.local:9411" \
+		--set values.global.tracer.zipkin.address="jaeger-collector.$(JAEGER_STACK_NS).svc.cluster.local:9411" \
 		--set values.pilot.traceSampling=100 \
 	> $@
 
