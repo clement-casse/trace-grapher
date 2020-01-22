@@ -1,4 +1,4 @@
-FROM neo4j:3.5
+FROM neo4j:3.5-entreprise
 
 ARG neo4j_apoc_release=3.5.0.6
 ARG neo4j_graphalgo_release=3.5.4.0
