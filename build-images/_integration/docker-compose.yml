@@ -150,11 +150,9 @@ services:
   ##
   neo4j:
     build:
-      context: ../build-images/neo4j/
+      context: ../neo4j/
       dockerfile: Dockerfile
       args:
-        neo4j_streams_release: "3.5.4"
-        neo4j_apoc_release: "3.5.0.5"
         HTTP_PROXY: *http_proxy
         HTTPS_PROXY: *https_proxy
         NO_PROXY: *no_proxy
@@ -175,12 +173,12 @@ services:
     environment:
       NEO4J_AUTH: none
       NEO4J_apoc_ttl_enabled: "true"
-      NEO4J_dbms_memory_heap_initial__size: 1G
-      NEO4J_dbms_memory_heap_max__size: 1G
+      NEO4J_dbms_memory_heap_initial__size: 512Mi
+      NEO4J_dbms_memory_heap_max__size: 512Mi
       NEO4J_dbms_memory_pagecache_size: 1G
       NEO4J_dbms_tx__log_rotation_retention__policy: 2 days
       NEO4J_dbms_security_procedures_unrestricted: algo.*,apoc.*
-      NEO4J_dbms_connector_bolt_tls__level: OPTIONAL
+      #NEO4J_dbms_connector_bolt_tls__level: OPTIONAL
       NEO4J_dbms_connector_bolt_listen__address: 0.0.0.0:7687
       NEO4J_dbms_cypher_min_replan_interval: 10s
       #NEO4J_metrics_prometheus_enabled: "true"       ## Only available in entreprise edition

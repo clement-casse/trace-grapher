@@ -1,6 +1,6 @@
 setup/**/*.json
 **/istio-manifest.yaml
-provision-compose/neo4j/logs/*.log
+build-images/_integration/neo4j/logs/*.log
 provision-k8s/_init/**/*
 !provision-k8s/_init/README.md
 provision-k8s/elasticsearch-auth.yml
