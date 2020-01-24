@@ -17,5 +17,4 @@ secretGenerator:
  
 patchesStrategicMerge:
   - almond-tuning.yml
-  - kafka-tuning.yml
   - neo4j-tuning.yml

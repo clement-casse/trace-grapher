@@ -10,12 +10,19 @@ spec:
       - name: neo4j
         resources:
           requests:
-            cpu: "500m"
-            memory: "6Gi"
+            cpu: "1"
+            memory: "8Gi"
           limits:
             cpu: "2"
             memory: "8Gi"
         env:
+        - name: NEO4J_dbms_default__advertised__address
+          valueFrom:
+            secretKeyRef:
+              name: neo4j-env
+              key: ADVERTISED_HOST
+        - name: NEO4J_dbms_connector_http_advertised__address
+          value: ':80'
         - name: NEO4J_dbms_memory_heap_initial__size
           value: 2G
         - name: NEO4J_dbms_memory_heap_max__size
@@ -26,7 +33,7 @@ spec:
           value: 2 days
   volumeClaimTemplates:
   - metadata:
-      name: "neo4j-data"
+      name: "data"
     spec:
       accessModes:
         - ReadWriteOnce
@@ -35,11 +42,11 @@ spec:
         requests:
           storage: 20Gi
   - metadata:
-      name: "neo4j-plugins"
+      name: "logs"
     spec:
       accessModes:
         - ReadWriteOnce
       storageClassName: "local-path"
       resources:
         requests:
-          storage: 500Mi
+          storage: 2Gi

@@ -7,35 +7,28 @@ CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 	$(if $(shell which $(exec)), "$(exec) found", $(error "The tool $(exec) cannot be found in PATH")) \
 )
 
-.PHONY: configure-init \
+
+OVERLAY ?= docker-desktop
+JAEGER_STACK_NS ?= jaeger-tracing-stack
+
+.PHONY: \
 	get-strimzi init-strimzi remove-strimzi \
 	get-ECK     init-ECK     remove-ECK \
 	get-jaeger  init-jaeger  remove-jaeger \
+	get-prometheus init-prometheus remove-prometheus \
 	get-istio   init-istio   remove-istio \
-	wait-for-es setup-es-auth-secret \
-	get-operators install-operators install-components remove-components \
+	get-operators install-operators configure-operators \
 	wipe purge
 
 
 all: \
 	install-operators \
-	wait-for-es \
-	setup-es-auth-secret \
-	install-components
+	configure-operators
 
 
 DOWNLOADED_OPERATORS :=
 OPERATOR_INSTALL_TARGETS :=
 OPERATOR_REMOVAL_TARGETS :=
-
-
-## `configure-init` Lists actions to be done on a new Kubernetes Cluster
-configure-init:
-	@echo "Eventually creating Namespace: $(APPLICATION_NS) $(ELASTIC_STACK_NS) and $(JAEGER_STACK_NS)"
-	@-kubectl create namespace "$(APPLICATION_NS)"
-	@-kubectl label  namespace "$(APPLICATION_NS)" istio-injection=disabled
-	@-kubectl create namespace "$(ELASTIC_STACK_NS)"
-	@-kubectl create namespace "$(JAEGER_STACK_NS)"
 
 
 ## `get-strimzi` Downloads Strimzy-Operator installation procedure for Kubernetes
@@ -55,7 +48,7 @@ _init/strimzi-operator:
 ##                strimzi CRDs and RBAC. It does not instanciate any Kafka broker nor zookeeper.
 ##                Operator, CRDs & RBAC are removed with `remove-strimzi`.
 OPERATOR_INSTALL_TARGETS += init-strimzi
-init-strimzi: _init/strimzi-operator configure-init
+init-strimzi: _init/strimzi-operator
 	@-kubectl create namespace $(STRIMZI_OPERATOR_NS)
 	@echo "Changing namespace references in YAML files."
 	@sed -i 's/namespace: .*/namespace: $(STRIMZI_OPERATOR_NS)/' $</install/cluster-operator/*RoleBinding*.yaml
@@ -145,7 +138,7 @@ _init/jaeger-operator:
 
 
 OPERATOR_INSTALL_TARGETS += init-jaeger
-init-jaeger: _init/jaeger-operator configure-init
+init-jaeger: _init/jaeger-operator
 	@-kubectl create namespace $(JAEGER_OPERATOR_NS)
 	@kubectl apply -f $</jaegertracing.io_jaegers_crd.yaml
 	@kubectl apply -f $</service_account.yaml
@@ -163,6 +156,51 @@ remove-jaeger: _init/jaeger-operator
 	@-kubectl delete -f $</service_account.yaml
 	@-kubectl delete -f $</jaegertracing.io_jaegers_crd.yaml
 	@-kubectl delete namespace $(JAEGER_OPERATOR_NS)
+
+
+get-prometheus: _init/prometheus-operator
+DOWNLOADED_OPERATORS += _init/prometheus-operator
+_init/prometheus-operator:
+	@mkdir -p $@
+	@echo "Downloading CoreOS Prometheus Operator"
+	@curl --silent \
+		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-deployment.yaml \
+		> $@/prometheus-operator-deployment.yaml
+	@curl --silent \
+		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml \
+		> $@/prometheus-operator-cluster-role.yaml
+	@curl --silent \
+		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-cluster-role-binding.yaml \
+		> $@/prometheus-operator-cluster-role-binding.yaml
+	@curl --silent \
+		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-service-account.yaml \
+		> $@/prometheus-operator-service-account.yaml
+	@echo "Done !"
+	@echo "Changing namespace references in YAML files."
+	@sed -i 's/namespace: .*/namespace: $(PROM_OPERATOR_NS)/' $@/prometheus-operator-deployment.yaml
+	@sed -i 's/namespace: .*/namespace: $(PROM_OPERATOR_NS)/' $@/prometheus-operator-cluster-role-binding.yaml
+	@sed -i 's/namespace: .*/namespace: $(PROM_OPERATOR_NS)/' $@/prometheus-operator-service-account.yaml
+	@echo "Done !"
+
+
+OPERATOR_INSTALL_TARGETS += init-prometheus
+init-prometheus: _init/prometheus-operator
+	@-kubectl create namespace $(PROM_OPERATOR_NS)
+	@kubectl apply -f $</prometheus-operator-deployment.yaml
+	@kubectl apply -f $</prometheus-operator-cluster-role.yaml
+	@kubectl apply -f $</prometheus-operator-cluster-role-binding.yaml
+	@kubectl apply -f $</prometheus-operator-service-account.yaml
+
+
+OPERATOR_REMOVAL_TARGETS += remove-prometheus
+remove-prometheus: _init/prometheus-operator
+	@echo "Removing Prometheus Operator ..."
+	@-kubectl delete -f $</prometheus-operator-service-account.yaml
+	@-kubectl delete -f $</prometheus-operator-cluster-role-binding.yaml
+	@-kubectl delete -f $</prometheus-operator-cluster-role.yaml
+	@-kubectl delete -f $</prometheus-operator-deployment.yaml
+	@-kubectl delete namespace $(PROM_OPERATOR_NS)
+	@echo "Done !"
 
 
 get-istio: _init/istio-$(ISTIO_VERSION)/
@@ -195,28 +233,6 @@ remove-istio: bases/istio-system-custom/generated_manifest/istio-manifest.yaml
 	@-kubectl delete -f $<
 
 
-wait-for-es: init-ECK
-	@kubectl wait 'pod/jaeger-tracing-backend-es-default-0' \
-		--for=condition=Ready --timeout=300s -n "$(JAEGER_STACK_NS)"
-
-
-## `elasticsearch-auth.yml` is the secret that hosts environment variables that will be used
-##                          by Jaeger components to reach its backend storage. It is used to store
-##                          ElasticSearch cluster authentication parametters.
-##                          This Target does not pushes the secret to the ES cluster, see `setup-es-auth-secret`
-elasticsearch-auth.yml: ES_USERNAME = elastic
-elasticsearch-auth.yml: elasticsearch-auth.yml.tmpl wait-for-es
-	@ES_USERNAME_B64="$(shell printf '$(ES_USERNAME)' | base64)" \
-	ES_PASSWORD_B64="$(shell kubectl -n "$(JAEGER_STACK_NS)" get secret jaeger-tracing-backend-es-elastic-user -o go-template='{{.data.elastic}}')" \
-	envsubst < $< > $@
-	@printf 'ElasticSearch Cluster auth\nUser: %s\nPassword: %s\n----\n' "$(ES_USERNAME)" "$(shell kubectl -n "$(JAEGER_STACK_NS)" get secret jaeger-tracing-backend-es-elastic-user -o go-template='{{.data.elastic | base64decode}}')"
-
-
-## `setup-es-auth-secret`: Applies the secret generated by `elasticsearch-auth.yml` to the k8s Cluster
-setup-es-auth-secret: elasticsearch-auth.yml
-	@kubectl apply -n "$(JAEGER_STACK_NS)" -f $<
-
-
 ########------------------------------------------------------------------------------########
 
 get-operators: $(DOWNLOADED_OPERATORS)
@@ -225,22 +241,8 @@ get-operators: $(DOWNLOADED_OPERATORS)
 install-operators: $(OPERATOR_INSTALL_TARGETS)
 
 
-install-components: configure-init
+configure-operators: install-operators
 	@kubectl apply -k ./overlays/$(OVERLAY)
-	@make setup-es-auth-secret
-
-
-gg:
-	@-kubectl delete -k ./bases/trace-grapher/
-	@-kubectl delete namespace $(APPLICATION_NS)
-
-remove-components:
-	@-kubectl delete -k ./overlays/$(OVERLAY)
-	@-kubectl delete -f ./elasticsearch-auth.yml -n $(APPLICATION_NS)
-	@-rm -rf ./elasticsearch-auth.yml
-	@-kubectl delete namespace $(APPLICATION_NS)
-	@-kubectl delete namespace "$(ELASTIC_STACK_NS)"
-	@-kubectl delete namespace "$(JAEGER_STACK_NS)"
 
 
 wipe: remove-components $(OPERATOR_REMOVAL_TARGETS)

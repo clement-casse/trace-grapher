@@ -17,12 +17,7 @@ secretGenerator:
 resources:
   - almond-service.yml
   - almond-statefulset.yml
-  - connect-ui-deployment.yml
-  - connect-ui-service.yml
   - gateway.yml
-  - kafka-cluster.yml
-  - kafka-connect.yml
-  - kafka-topic.yml
   - neo4j-service.yml
   - neo4j-statefulset.yml
   - virtualservice.yml

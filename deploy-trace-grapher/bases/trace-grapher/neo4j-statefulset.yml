@@ -32,21 +32,25 @@ spec:
               key: NEO4J_AUTH
         - name: NEO4J_apoc_ttl_enabled
           value: "true"
+        - name: NEO4J_dbms_default__listen__address
+          value: '0.0.0.0'
         - name: NEO4J_dbms_security_procedures_unrestricted
           value: algo.*,apoc.*
-        - name: NEO4J_dbms_connector_bolt_tls__level
-          value: OPTIONAL
+        - name: NEO4J_dbms_ssl_policy_bolt_enabled
+          value: 'false'
         - name: NEO4J_dbms_connector_bolt_listen__address
           value: 0.0.0.0:7687
         - name: NEO4J_dbms_connector_http_listen__address
           value: 0.0.0.0:7474
         - name: NEO4J_dbms_cypher_min_replan_interval
           value: 10s
+        - name: NEO4J_dbms_allow__upgrade
+          value: 'true'
         volumeMounts:
-        - name: neo4j-data
+        - name: data
           mountPath: /data
-        - name: neo4j-plugins
-          mountPath: /var/lib/neo4j/plugins
+        - name: logs
+          mountPath: /logs
         readinessProbe:
           tcpSocket:
             port: 7687
@@ -65,7 +69,7 @@ spec:
             memory: "2Gi"
   volumeClaimTemplates:
   - metadata:
-      name: "neo4j-data"
+      name: "data"
     spec:
       accessModes:
         - ReadWriteOnce
@@ -74,11 +78,11 @@ spec:
         requests:
           storage: 2Gi
   - metadata:
-      name: "neo4j-plugins"
+      name: "logs"
     spec:
       accessModes:
         - ReadWriteOnce
       storageClassName: hostpath
       resources:
         requests:
-          storage: 100Mi
+          storage: 1Gi
