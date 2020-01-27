@@ -23,8 +23,6 @@ spec:
         - name: http-web
           containerPort: 8888
         env:
-          - name: JUPYTER_ENABLE_LAB
-            value: 'yes'
           - name: JUPYTER_PASSWORD_SHA1
             valueFrom:
               secretKeyRef:
@@ -60,8 +58,14 @@ spec:
               secretKeyRef:
                 name: almond-env
                 key: NO_PROXY
+          - name: NEO4J_URI
+            valueFrom:
+              secretKeyRef:
+                name: almond-env
+                key: NEO4J_URI
         command: [
           "start-notebook.sh",
+          "--NotebookApp.allow_origin=\"*\"",
           "--NotebookApp.base_url=/jupyter"
         ]
         volumeMounts:

@@ -3,12 +3,18 @@ include vars.mk
 OVERLAY ?= docker-desktop
 
 .PHONY: \
+	prepare-trace-grapher-namespace \
 	install-components \
 	remove-components \
 	purge
 
 
-install-components:
+prepare-trace-grapher-namespace:
+	@echo "Eventually creating Namespace: $(APPLICATION_NS)"
+	@-kubectl create namespace "$(APPLICATION_NS)"
+
+
+install-components: prepare-trace-grapher-namespace
 	@kubectl apply -k ./overlays/$(OVERLAY)
 
 

@@ -16,13 +16,13 @@ spec:
             cpu: "2"
             memory: "8Gi"
         env:
-        - name: NEO4J_dbms_default__advertised__address
-          valueFrom:
-            secretKeyRef:
-              name: neo4j-env
-              key: ADVERTISED_HOST
-        - name: NEO4J_dbms_connector_http_advertised__address
-          value: ':80'
+        # - name: NEO4J_dbms_default__advertised__address
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: neo4j-env
+        #       key: ADVERTISED_HOST
+        # - name: NEO4J_dbms_connector_http_advertised__address
+        #   value: ':80'
         - name: NEO4J_dbms_memory_heap_initial__size
           value: 2G
         - name: NEO4J_dbms_memory_heap_max__size
@@ -50,3 +50,12 @@ spec:
       resources:
         requests:
           storage: 2Gi
+  - metadata:
+      name: "plugins"
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 1Gi
