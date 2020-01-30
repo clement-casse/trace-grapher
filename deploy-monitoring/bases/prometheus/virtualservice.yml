@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: jaeger
+  name: prometheus
 spec:
   hosts:
   - "*"
@@ -10,9 +10,9 @@ spec:
   http:
   - match:
     - uri:
-        prefix: /jaeger
+        prefix: /prometheus
     route:
     - destination:
-        host: jaeger-query
+        host: prometheus-operated
         port:
-          number: 16686
+          number: 9090
