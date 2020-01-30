@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: almond
+  name: jupyter
   labels:
-    app: almond
+    app: jupyter
 spec:
   type: ClusterIP
   selector:
-    app: almond
+    app: jupyter
   ports:
   - name: http-web
     port: 8888

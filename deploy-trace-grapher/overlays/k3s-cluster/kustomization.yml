@@ -10,11 +10,11 @@ secretGenerator:
     namespace: trace-grapher
     env: neo4j.env
 
-  - name: almond-env
+  - name: jupyter-env
     behavior: replace
     namespace: trace-grapher
-    env: almond.env
+    env: jupyter.env
  
 patchesStrategicMerge:
-  - almond-tuning.yml
+  - jupyter-tuning.yml
   - neo4j-tuning.yml

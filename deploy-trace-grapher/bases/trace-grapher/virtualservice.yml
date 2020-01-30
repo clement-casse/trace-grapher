@@ -62,7 +62,7 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: almond
+  name: jupyter
 spec:
   hosts:
   - "*"
@@ -74,6 +74,6 @@ spec:
         prefix: /jupyter/
     route:
     - destination:
-        host: almond
+        host: jupyter
         port:
           number: 8888

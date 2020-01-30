@@ -11,7 +11,7 @@ secretGenerator:
       - HTTPS_PROXY=
       - NO_PROXY=localhost,127.0.0.1
 
-  - name: almond-env
+  - name: jupyter-env
     literals:
       - JUPYTER_PASSWORD_SHA1=sha1:7ebf6567d6cf:19345de3e61d863b60fb79060f6ea9facaf965a9 # = 'password'
       - HTTP_PROXY=
@@ -20,8 +20,8 @@ secretGenerator:
       - NEO4J_URI=http://neo4j:GorgeousPassword@neo4j:7474/db/data
 
 resources:
-  - almond-service.yml
-  - almond-statefulset.yml
+  - jupyter-service.yml
+  - jupyter-statefulset.yml
   - gateway.yml
   - neo4j-service.yml
   - neo4j-statefulset.yml
