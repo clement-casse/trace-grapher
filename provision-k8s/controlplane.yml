@@ -1,0 +1,33 @@
+apiVersion: install.istio.io/v1alpha2
+kind: IstioControlPlane
+spec:
+  profile: default
+  gateways:
+    enabled: true
+    components:
+      ingressGateway:
+        enabled: true
+        # k8s:
+      egressGateway:
+        enabled: false
+  telemetry:
+    enabled: false
+
+  values:
+    global:
+      enableTracing: true
+      proxy:
+        tracer: zipkin
+      tracer:
+        zipkin:
+          address: "jaeger-collector.monitoring-stack.svc.cluster.local:9411"
+    pilot:
+      traceSampling: 1.0
+    prometheus:
+      enabled: false
+    grafana:
+      enabled: false
+    kiali:
+      enabled: false
+    tracing:
+      enabled: false

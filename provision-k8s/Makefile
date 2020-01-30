@@ -211,26 +211,16 @@ _init/istio-$(ISTIO_VERSION)/:
 ISTIOCTL := $(realpath _init)/istio-$(ISTIO_VERSION)/bin/istioctl
 
 
-bases/istio-system-custom/generated_manifest/istio-manifest.yaml: get-istio
-	@rm -rf '$@'
-	$(ISTIOCTL) manifest generate \
-		--set profile=default \
-		--set telemetry.enabled=false \
-		--set values.gateways.istio-ingressgateway.enabled=true \
-		--set values.global.tracer.zipkin.address="jaeger-collector.$(JAEGER_STACK_NS).svc.cluster.local:9411" \
-		--set values.pilot.traceSampling=100 \
-	> $@
-
-
 OPERATOR_INSTALL_TARGETS += init-istio
-init-istio: bases/istio-system-custom/generated_manifest/istio-manifest.yaml
-	@kubectl apply -f $<
+init-istio: controlplane.yml
+	$(ISTIOCTL) manifest apply -f $<
 	@kubectl wait 'deployment/istio-pilot' --for=condition=available --timeout=300s -n istio-system
+	@kubectl apply -n istio-system -f ingressgateway-lb.yml
 
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
-remove-istio: bases/istio-system-custom/generated_manifest/istio-manifest.yaml
-	@-kubectl delete -f $<
+remove-istio:
+	@-kubectl delete ns istio-system
 
 
 ########------------------------------------------------------------------------------########
@@ -241,11 +231,7 @@ get-operators: $(DOWNLOADED_OPERATORS)
 install-operators: $(OPERATOR_INSTALL_TARGETS)
 
 
-configure-operators: install-operators
-	@kubectl apply -k ./overlays/$(OVERLAY)
-
-
-wipe: remove-components $(OPERATOR_REMOVAL_TARGETS)
+wipe: $(OPERATOR_REMOVAL_TARGETS)
 	@-kubectl wait 'deployment/istio-policy'  --for=condition=terminated --timeout=300s -n istio-system
 	@-kubectl wait 'deployment/istio-citadel' --for=condition=terminated --timeout=300s -n istio-system
 
