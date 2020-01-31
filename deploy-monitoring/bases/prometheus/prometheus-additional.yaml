@@ -1,5 +1,2 @@
-- job_name: "prometheus"
-  metrics_path: /prometheus/metrics
-  static_configs:
-  - targets: [ "localhost:9090" ]
+
 

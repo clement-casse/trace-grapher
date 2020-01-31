@@ -8,6 +8,7 @@ bases:
   - grafana
   - jaeger-tracing
   - prometheus
+  - prometheus-adapter
 
 resources:
   - gateway.yml

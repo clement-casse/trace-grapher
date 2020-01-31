@@ -1,7 +1,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
-  name: main
+  name: k8s
   labels:
     prometheus: k8s
 spec:
@@ -14,9 +14,9 @@ spec:
     fsGroup: 2000
     runAsNonRoot: true
     runAsUser: 1000
-  additionalScrapeConfigs:
-    name: additional-scrape-configs
-    key: prometheus-additional.yaml
+  # additionalScrapeConfigs:
+  #   name: additional-scrape-configs
+  #   key: prometheus-additional.yaml
   serviceAccountName: prometheus-k8s
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector: {}

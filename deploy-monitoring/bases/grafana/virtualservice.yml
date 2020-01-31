@@ -12,7 +12,7 @@ spec:
     - uri:
         prefix: /grafana/
     - uri:
-      prefix: /grafana
+        prefix: /grafana
     rewrite:
       uri: /
     route:
