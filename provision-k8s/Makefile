@@ -214,13 +214,16 @@ ISTIOCTL := $(realpath _init)/istio-$(ISTIO_VERSION)/bin/istioctl
 OPERATOR_INSTALL_TARGETS += init-istio
 init-istio: controlplane.yml
 	$(ISTIOCTL) manifest apply -f $<
-	@kubectl wait 'deployment/istio-pilot' --for=condition=available --timeout=300s -n istio-system
+	@echo "Waiting for istio components pilot and citadel to be ready"
+	@kubectl wait 'deployment/istio-pilot'   --for=condition=available --timeout=300s -n istio-system
+	@kubectl wait 'deployment/istio-citadel' --for=condition=available --timeout=300s -n istio-system
+	@echo "Applying custom loadbalancer for the ingress gateway"
 	@kubectl apply -n istio-system -f ingressgateway-lb.yml
 
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
-remove-istio:
-	@-kubectl delete ns istio-system
+remove-istio: controlplane.yml
+	@-$(ISTIOCTL) manifest generate -f $< | kubectl delete -f -
 
 
 ########------------------------------------------------------------------------------########
