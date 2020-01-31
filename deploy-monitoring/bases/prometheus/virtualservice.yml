@@ -13,6 +13,6 @@ spec:
         prefix: /prometheus
     route:
     - destination:
-        host: prometheus-operated
+        host: prometheus
         port:
           number: 9090
