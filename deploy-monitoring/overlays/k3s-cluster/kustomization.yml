@@ -4,11 +4,11 @@ kind: Kustomization
 bases:
   - ../../bases
 
-# configMapGenerator:
-#   - name: filebeat-inputs
-#     behavior: replace
-#     files:
-#       - filebeat_conf/inputs.yml
+secretGenerator:
+  - name: grafana-env
+    behavior: replace
+    namespace: monitoring-stack
+    env: grafana.env
 
 
 patchesStrategicMerge:

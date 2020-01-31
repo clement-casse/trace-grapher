@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: monitoring-stack
 
 bases:
+  - grafana
   - jaeger-tracing
   - prometheus
 

@@ -1,0 +1,52 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+- name: grafana-dashboards
+  files:
+  - dashboards.yaml
+
+- name: grafana-dashboard-definitions
+  files:
+  - dashboard-definitions/apiserver.json
+  - dashboard-definitions/cluster-total.json
+  - dashboard-definitions/controller-manager.json
+  - dashboard-definitions/k8s-resources-cluster.json
+  # - dashboard-definitions/k8s-resources-namespace.json
+  # - dashboard-definitions/k8s-resources-node.json
+  # - dashboard-definitions/k8s-resources-pod.json
+  # - dashboard-definitions/k8s-resources-workload.json
+  # - dashboard-definitions/k8s-resources-workloads-namespace.json
+  # - dashboard-definitions/kubelet.json
+  # - dashboard-definitions/namespace-by-pod.json
+  # - dashboard-definitions/namespace-by-workload.json
+  # - dashboard-definitions/node-cluster-rsrc-use.json
+  # - dashboard-definitions/node-rsrc-use.json
+  # - dashboard-definitions/nodes.json
+  # - dashboard-definitions/persistentvolumesusage.json
+  # - dashboard-definitions/pod-total.json
+  # - dashboard-definitions/pods.json
+  # - dashboard-definitions/prometheus-remote-write.json
+  # - dashboard-definitions/prometheus.json
+  # - dashboard-definitions/proxy.json
+  # - dashboard-definitions/scheduler.json
+  # - dashboard-definitions/statefulset.json
+
+secretGenerator:
+- name: grafana-datasources
+  files:
+  - datasources.yaml
+
+- name: grafana-env
+  literals:
+  - GF_SERVER_DOMAIN=localhost
+  - GF_SERVER_PROTOCOL=http
+  - GF_SECURITY_ADMIN_USER=admin
+  - GF_SECURITY_ADMIN_PASSWORD=nimda
+
+
+resources:
+- deployment.yml
+- service.yml
+- virtualservice.yml
+
