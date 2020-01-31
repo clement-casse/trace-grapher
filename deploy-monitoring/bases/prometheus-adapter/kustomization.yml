@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - apiService.yml
+  - clusterRole.yml
+  - clusterRoleAggregatedMetricsReader.yml
+  - clusterRoleBinding.yml
+  - clusterRoleBindingDelegator.yml
+  - clusterRoleServerResources.yml
+  - configMap.yml
+  - deployment.yml
+  - roleBindingAuthReader.yml
+  - service.yml
+  - serviceAccount.yml
