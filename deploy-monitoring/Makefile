@@ -4,6 +4,7 @@ OVERLAY ?= docker-desktop
 
 .PHONY: \
 	prepare-monitoring-namespace \
+	apply-prometheus-rbac \
 	wait-for-es \
 	setup-es-auth-secret \
 	install-monitoring \
@@ -15,7 +16,11 @@ prepare-monitoring-namespace:
 	@-kubectl create namespace "$(MONITORING_NS)"
 
 
-install-monitoring: prepare-monitoring-namespace
+apply-prometheus-rbac: prepare-monitoring-namespace
+	@kubectl apply -f ./bases/prometheus/rbac/
+
+
+install-monitoring: prepare-monitoring-namespace apply-prometheus-rbac
 	@kubectl apply -k ./overlays/$(OVERLAY)
 	@make setup-es-auth-secret
 

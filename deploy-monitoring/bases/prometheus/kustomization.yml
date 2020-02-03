@@ -13,16 +13,9 @@ secretGenerator:
 
 
 resources:
-  - clusterRole.yml
-  - clusterRoleBinding.yml
   - prometheus.yml
   - prometheus-rules.yml
-  - roleBindingConfig.yml
-  - roleBindingSpecificNamespaces.yml
-  - roleConfig.yml
-  - roleSpecificNamespaces.yml
   - service.yml
-  - serviceAccount.yml
   - serviceMonitor.yml
   - serviceMonitorApiServer.yml
   - serviceMonitorCoreDNS.yml
