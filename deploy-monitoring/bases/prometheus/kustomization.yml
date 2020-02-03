@@ -19,6 +19,7 @@ resources:
   - serviceMonitor.yml
   - serviceMonitorApiServer.yml
   - serviceMonitorCoreDNS.yml
+  - serviceMonitorIstio.yml
   - serviceMonitorKubeControllerManager.yml
   - serviceMonitorKubelet.yml
   - serviceMonitorKubeScheduler.yml

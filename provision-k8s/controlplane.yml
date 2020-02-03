@@ -11,7 +11,7 @@ spec:
       egressGateway:
         enabled: false
   telemetry:
-    enabled: false
+    enabled: true
 
   values:
     global:
