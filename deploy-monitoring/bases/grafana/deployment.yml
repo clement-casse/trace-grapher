@@ -60,8 +60,20 @@ spec:
         - mountPath: /etc/grafana/provisioning/dashboards
           name: grafana-dashboards
           readOnly: false
-        - mountPath: /grafana-dashboard-definitions/
-          name: grafana-dashboard-definitions
+        - mountPath: /grafana-dashboard-definitions/0/
+          name: grafana-dashboard-definitions-0
+        - mountPath: /grafana-dashboard-definitions/1/
+          name: grafana-dashboard-definitions-1
+        - mountPath: /grafana-dashboard-definitions/2/
+          name: grafana-dashboard-definitions-2
+        - mountPath: /grafana-dashboard-definitions/3/
+          name: grafana-dashboard-definitions-3
+        - mountPath: /grafana-dashboard-definitions/4/
+          name: grafana-dashboard-definitions-4
+        - mountPath: /grafana-dashboard-definitions/5/
+          name: grafana-dashboard-definitions-5
+        - mountPath: /grafana-dashboard-definitions/6/
+          name: grafana-dashboard-definitions-6
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -74,6 +86,24 @@ spec:
       - name: grafana-dashboards
         configMap:
           name: grafana-dashboards
-      - name: grafana-dashboard-definitions
+      - name: grafana-dashboard-definitions-0
         configMap:
-          name: grafana-dashboard-definitions
+          name: grafana-dashboard-definitions-0
+      - name: grafana-dashboard-definitions-1
+        configMap:
+          name: grafana-dashboard-definitions-1
+      - name: grafana-dashboard-definitions-2
+        configMap:
+          name: grafana-dashboard-definitions-2
+      - name: grafana-dashboard-definitions-3
+        configMap:
+          name: grafana-dashboard-definitions-3
+      - name: grafana-dashboard-definitions-4
+        configMap:
+          name: grafana-dashboard-definitions-4
+      - name: grafana-dashboard-definitions-5
+        configMap:
+          name: grafana-dashboard-definitions-5
+      - name: grafana-dashboard-definitions-6
+        configMap:
+          name: grafana-dashboard-definitions-6
