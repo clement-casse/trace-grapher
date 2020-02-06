@@ -22,46 +22,56 @@ spec:
         - name: http-web
           containerPort: 8888
         env:
-          - name: JUPYTER_PASSWORD_SHA1
-            valueFrom:
-              secretKeyRef:
-                name: jupyter-env
-                key: JUPYTER_PASSWORD_SHA1
-          - name: HTTP_PROXY
-            valueFrom:
-              secretKeyRef:
-                name: jupyter-env
-                key: HTTP_PROXY
-          - name: HTTPS_PROXY
-            valueFrom:
-              secretKeyRef:
-                name: jupyter-env
-                key: HTTPS_PROXY
-          - name: NO_PROXY
-            valueFrom:
-              secretKeyRef:
-                name: jupyter-env
-                key: NO_PROXY
-          - name: http_proxy
-            valueFrom:
-              secretKeyRef:
-                name: jupyter-env
-                key: HTTP_PROXY
-          - name: https_proxy
-            valueFrom:
-              secretKeyRef:
-                name: jupyter-env
-                key: HTTPS_PROXY
-          - name: no_proxy
-            valueFrom:
-              secretKeyRef:
-                name: jupyter-env
-                key: NO_PROXY
-          - name: NEO4J_URI
-            valueFrom:
-              secretKeyRef:
-                name: jupyter-env
-                key: NEO4J_URI
+        - name: JUPYTER_PASSWORD_SHA1
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: JUPYTER_PASSWORD_SHA1
+        - name: HTTP_PROXY
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: HTTP_PROXY
+        - name: HTTPS_PROXY
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: HTTPS_PROXY
+        - name: NO_PROXY
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: NO_PROXY
+        - name: http_proxy
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: HTTP_PROXY
+        - name: https_proxy
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: HTTPS_PROXY
+        - name: no_proxy
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: NO_PROXY
+        - name: NEO4J_URI
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: NEO4J_URI
+        - name: LIBMETRIC_ENGINE
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: LIBMETRIC_ENGINE
+        - name: LIBMETRIC_URL
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-env
+              key: LIBMETRIC_URL
         command: [
           "start-notebook.sh",
           "--NotebookApp.allow_origin=\"*\"",
@@ -70,13 +80,15 @@ spec:
         volumeMounts:
         - name: jupyter-data
           mountPath: /home/jovyan/work
+        - name: before-notebook-scripts
+          mountPath: /usr/local/bin/before-notebook.d/
         readinessProbe:
           tcpSocket:
             port: 8888
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        livenessProbe:
           initialDelaySeconds: 60
+          periodSeconds: 10
+        livenessProbe:
+          initialDelaySeconds: 300
           tcpSocket:
             port: 8888
         resources:
@@ -86,6 +98,11 @@ spec:
           limits:
             cpu: "1"
             memory: "2Gi"
+      volumes:
+      - name: before-notebook-scripts
+        configMap:
+          name: before-notebook
+          defaultMode: 0777
   volumeClaimTemplates:
   - metadata:
       name: jupyter-data
