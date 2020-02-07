@@ -4,6 +4,5 @@
         "editor.renderWhitespace": "all",
         "editor.wordWrapColumn": 80,
         "editor.wrappingIndent": "indent"
-    },
-    "python.dataScience.jupyterServerURI": "http://10.171.40.50/jupyter/"
+    }
 }

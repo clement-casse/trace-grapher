@@ -3,6 +3,6 @@ kind: Kustomization
 
 resources:
   - elasticsearch.yml
+  - kibana.yml
   - jaeger.yml
-  - tracing-lb.yml
   - virtualservice.yml

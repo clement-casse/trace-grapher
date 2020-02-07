@@ -5,16 +5,13 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: jaeger
+    app: opencensus
+    component: oc-collector
   ports:
     -
       name: zipkin
       port: 9411
       targetPort: 9411
-    -
-      name: grpc
-      port: 14250
-      targetPort: 14250
     -
       name: c-tchan-thrft
       port: 14267
