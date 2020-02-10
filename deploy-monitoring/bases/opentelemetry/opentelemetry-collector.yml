@@ -1,0 +1,38 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-collector
+spec:
+  replicas: 1
+  args:
+    log-level: DEBUG
+  config: |
+    receivers:
+      zipkin:
+        address: ":9411"
+      jaeger:
+        protocols:
+          grpc:
+          thrift_http:
+          thrift_tchannel:
+          thrift_compact:
+          thrift_binary:
+
+    processors:
+      attributes/example:
+        actions:
+          - key: processed_by
+            action: upsert
+            value: otel
+
+    exporters:
+      logging:
+
+    service:
+      pipelines:
+        traces:
+          receivers: [zipkin, jaeger]
+          processors: [attributes/example]
+          exporters: [logging]
+    
+    
