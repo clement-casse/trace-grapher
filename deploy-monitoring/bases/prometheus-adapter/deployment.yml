@@ -17,17 +17,17 @@ spec:
         name: prometheus-adapter
     spec:
       containers:
-      - args:
+      - name: prometheus-adapter
+        image: quay.io/coreos/k8s-prometheus-adapter-amd64:v0.5.0
+        ports:
+        - containerPort: 6443
+        args:
         - --cert-dir=/var/run/serving-cert
         - --config=/etc/adapter/config.yaml
         - --logtostderr=true
         - --metrics-relist-interval=1m
-        - --prometheus-url=http://prometheus.monitoring-stack.svc:9090/prometheus/
+        - --prometheus-url=http://prometheus:9090/prometheus
         - --secure-port=6443
-        image: quay.io/coreos/k8s-prometheus-adapter-amd64:v0.5.0
-        name: prometheus-adapter
-        ports:
-        - containerPort: 6443
         volumeMounts:
         - mountPath: /tmp
           name: tmpfs
@@ -42,10 +42,10 @@ spec:
         kubernetes.io/os: linux
       serviceAccountName: prometheus-adapter
       volumes:
-      - emptyDir: {}
-        name: tmpfs
-      - emptyDir: {}
-        name: volume-serving-cert
-      - configMap:
+      - name: tmpfs
+        emptyDir: {}
+      - name: volume-serving-cert
+        emptyDir: {}
+      - name: config
+        configMap:
           name: adapter-config
-        name: config

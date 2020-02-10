@@ -76,6 +76,7 @@ spec:
           "start-notebook.sh",
           "--NotebookApp.allow_origin=\"*\"",
           "--NotebookApp.base_url=/jupyter",
+          "--NotebookApp.password=$(JUPYTER_PASSWORD_SHA1)"
         ]
         volumeMounts:
         - name: jupyter-data

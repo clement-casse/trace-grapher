@@ -5,22 +5,6 @@ metadata:
 
 spec:
   serviceName: jupyter
-  template:
-    spec:
-      containers:
-      - name: jupyter
-        env:
-        - name: JUPYTER_PASSWORD_SHA1
-          valueFrom:
-            secretKeyRef:
-              name: jupyter-env
-              key: JUPYTER_PASSWORD_SHA1
-        command: [
-          "start-notebook.sh",
-          "--NotebookApp.base_url=/jupyter",
-          "--NotebookApp.allow_origin=\"*\"",
-          "--NotebookApp.password=sha1:dcea52249bf2:cf3166bdfbd24bc53b419ab771fb66223355382c",
-        ]
   volumeClaimTemplates:
   - metadata:
       name: jupyter-data

@@ -1,6 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+configMapGenerator:
+  - name: adapter-config
+    files:
+      - config/config.yaml
+
 resources:
   - apiService.yml
   - clusterRole.yml
@@ -8,7 +13,6 @@ resources:
   - clusterRoleBinding.yml
   - clusterRoleBindingDelegator.yml
   - clusterRoleServerResources.yml
-  - configMap.yml
   - deployment.yml
   - roleBindingAuthReader.yml
   - service.yml

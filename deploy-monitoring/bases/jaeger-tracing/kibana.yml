@@ -17,6 +17,7 @@ spec:
     spec:
       containers:
       - name: kibana
+        # Rewrite Readiness probe bacause of Kibana Base Path
         readinessProbe:
           failureThreshold: 3
           httpGet:

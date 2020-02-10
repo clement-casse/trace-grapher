@@ -8,8 +8,11 @@ bases:
   - grafana
   - jaeger-tracing
   - kube-state-metrics
+  - metric-server
+  - opencensus
   - prometheus
   - prometheus-adapter
 
 resources:
   - gateway.yml
+  - tracing-lb.yml
