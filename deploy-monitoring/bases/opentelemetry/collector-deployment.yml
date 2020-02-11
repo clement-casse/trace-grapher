@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oc-collector
+  name: otel-collector
   labels:
-    app: opencensus
-    component: oc-collector
+    app: opentelemetry
+    component: otel-collector
 spec:
   minReadySeconds: 5
   progressDeadlineSeconds: 120
   replicas: 1
   selector:
     matchLabels:
-      app: opencensus
-      component: oc-collector
+      app: opentelemetry
+      component: otel-collector
   template:
     metadata:
       annotations:
@@ -20,15 +20,15 @@ spec:
         prometheus.io/port: "8888"
         prometheus.io/scrape: "true"
       labels:
-        app: opencensus
-        component: oc-collector
+        app: opentelemetry
+        component: otel-collector
     spec:
       containers:
-      - name: oc-collector
-        image: omnition/opencensus-collector:0.1.11
+      - name: otel-collector
+        image: omnition/opentelemetry-collector:v0.2.3
         command:
-        - "/occollector_linux"
-        - "--config=/conf/oc-collector-config.yaml"
+        - "/otelcol"
+        - "--config=/conf/otel-collector-config.yaml"
         env:
         - name: GOGC
           value: "80"
@@ -50,10 +50,8 @@ spec:
             cpu: 200m
             memory: 400Mi
         volumeMounts:
-        - name: oc-collector-config-vol
+        - name: otel-collector-config-vol
           mountPath: /conf
-#        - name: oc-collector-secrets
-#          mountPath: /secrets
         livenessProbe:
           httpGet:
             path: /
@@ -63,10 +61,9 @@ spec:
             path: /
             port: 13133 # Health Check extension default port.
       volumes:
-      - name: oc-collector-config-vol
+      - name: otel-collector-config-vol
         configMap:
-          name: oc-collector-conf
+          name: otel-collector-conf
           items:
-          - key: oc-collector-config.yaml
-            path: oc-collector-config.yaml
-        
+          - key: otel-collector-config.yaml
+            path: otel-collector-config.yaml

@@ -8,7 +8,8 @@ OVERLAY ?= docker-desktop
 	wait-for-es \
 	setup-es-auth-secret \
 	install-monitoring \
-	remove-monitoring
+	remove-monitoring \
+	purge
 
 
 prepare-monitoring-namespace:
@@ -52,3 +53,5 @@ remove-monitoring:
 	@-kubectl delete -f ./elasticsearch-auth.yml -n "$(MONITORING_NS)"
 	@-rm -rf ./elasticsearch-auth.yml
 	@-kubectl delete namespace "$(MONITORING_NS)"
+
+purge: remove-monitoring

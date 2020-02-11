@@ -5,8 +5,8 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: opencensus
-    component: oc-collector
+    app: opentelemetry
+    component: otel-collector
   ports:
     -
       name: zipkin
@@ -20,3 +20,7 @@ spec:
       name: c-binary-thrft
       port: 14268
       targetPort: 14268
+    -
+      name: opencensus
+      port: 55678
+      targetPort: 55678

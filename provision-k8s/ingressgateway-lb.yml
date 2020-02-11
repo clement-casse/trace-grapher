@@ -30,11 +30,3 @@ spec:
       name: bolt
       port: 7687
       targetPort: 7687
-    -
-      name: prometheus
-      port: 15030
-      targetPort: 15030
-    -
-      name: grafana
-      port: 15031
-      targetPort: 15031

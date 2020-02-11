@@ -9,7 +9,7 @@ bases:
   - jaeger-tracing
   - kube-state-metrics
   - metric-server
-  - opencensus
+  - opentelemetry
   - prometheus
   - prometheus-adapter
 

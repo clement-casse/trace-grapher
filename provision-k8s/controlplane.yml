@@ -2,6 +2,13 @@ apiVersion: install.istio.io/v1alpha2
 kind: IstioControlPlane
 spec:
   profile: default
+  trafficManagement:
+    components:
+      pilot:
+        k8s:
+          env:
+          - name: PILOT_ENABLE_REDIS_FILTER
+            value: 'false'
   gateways:
     enabled: true
     components:
@@ -9,7 +16,7 @@ spec:
         enabled: true
         # k8s:
       egressGateway:
-        enabled: false
+        enabled: true
   telemetry:
     enabled: true
 
@@ -20,9 +27,9 @@ spec:
         tracer: zipkin
       tracer:
         zipkin:
-          address: "jaeger-collector.monitoring-stack.svc.cluster.local:9411"
+          address: "otel-collector.monitoring-stack.svc.cluster.local:9411"
     pilot:
-      traceSampling: 1.0
+      traceSampling: 100
     prometheus:
       enabled: false
     grafana:
