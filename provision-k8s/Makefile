@@ -9,7 +9,6 @@ CAN_RUN := $(foreach exec,$(REQUIRED_EXECUTABLES), \
 
 
 OVERLAY ?= docker-desktop
-JAEGER_STACK_NS ?= jaeger-tracing-stack
 
 .PHONY: \
 	get-strimzi init-strimzi remove-strimzi \
@@ -239,11 +238,11 @@ init-otel: _init/otel-operator
 OPERATOR_REMOVAL_TARGETS += remove-otel
 remove-otel: _init/otel-operator
 	@echo "Removing OpenTelemetry Operator ..."
-	@kubectl delete -n monitoring-stack -f $</opentelemetry.io_opentelemetrycollectors_crd.yaml
-	@kubectl delete -n monitoring-stack -f $</service_account.yaml
-	@kubectl delete -n monitoring-stack -f $</role.yaml
-	@kubectl delete -n monitoring-stack -f $</role_binding.yaml
-	@kubectl delete -n monitoring-stack -f $</operator.yaml
+	@-kubectl delete -n monitoring-stack -f $</opentelemetry.io_opentelemetrycollectors_crd.yaml
+	@-kubectl delete -n monitoring-stack -f $</service_account.yaml
+	@-kubectl delete -n monitoring-stack -f $</role.yaml
+	@-kubectl delete -n monitoring-stack -f $</role_binding.yaml
+	@-kubectl delete -n monitoring-stack -f $</operator.yaml
 	@echo "Done !"
 
 
