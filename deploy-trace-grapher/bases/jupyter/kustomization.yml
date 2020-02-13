@@ -1,16 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: trace-grapher
-
 secretGenerator:
-  - name: neo4j-env
-    literals:
-      - NEO4J_AUTH=GorgeousPassword
-      - HTTP_PROXY=
-      - HTTPS_PROXY=
-      - NO_PROXY=localhost,127.0.0.1
-
   - name: jupyter-env
     literals:
       - JUPYTER_PASSWORD_SHA1=sha1:7ebf6567d6cf:19345de3e61d863b60fb79060f6ea9facaf965a9 # = 'password'
@@ -25,13 +16,10 @@ secretGenerator:
 configMapGenerator:
   - name: before-notebook
     files:
-      - jupyter-startup-hooks/prepare-env.sh
+      - startup-hooks/prepare-env.sh
 
 
 resources:
-  - jupyter-service.yml
-  - jupyter-statefulset.yml
-  - gateway.yml
-  - neo4j-service.yml
-  - neo4j-statefulset.yml
+  - service.yml
+  - statefulset.yml
   - virtualservice.yml
