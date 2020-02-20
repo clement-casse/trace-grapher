@@ -6,12 +6,12 @@ bases:
 
 secretGenerator:
   - name: neo4j-env
-    behavior: replace
+    behavior: merge
     namespace: trace-grapher
     env: neo4j.env
 
   - name: jupyter-env
-    behavior: replace
+    behavior: merge
     namespace: trace-grapher
     env: jupyter.env
  

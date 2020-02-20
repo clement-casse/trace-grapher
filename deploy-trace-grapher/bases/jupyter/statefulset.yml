@@ -62,16 +62,16 @@ spec:
             secretKeyRef:
               name: jupyter-env
               key: NEO4J_URI
-        - name: LIBMETRIC_ENGINE
+        - name: PROMETHEUS_URI
           valueFrom:
             secretKeyRef:
               name: jupyter-env
-              key: LIBMETRIC_ENGINE
-        - name: LIBMETRIC_URL
+              key: PROMETHEUS_URI
+        - name: JAEGER_URI
           valueFrom:
             secretKeyRef:
               name: jupyter-env
-              key: LIBMETRIC_URL
+              key: JAEGER_URI
         command: [
           "start-notebook.sh",
           "--NotebookApp.allow_origin=\"*\"",
