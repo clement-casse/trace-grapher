@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd
+spec:
+  template:
+    spec:
+      containers:
+      - name: fluentd
+        volumeMounts:
+        - name: containerlogs
+          mountPath: /var/log/containers
+          readOnly: true
+      volumes:
+      - name: containerlogs
+        hostPath:
+          path: /var/log/containers

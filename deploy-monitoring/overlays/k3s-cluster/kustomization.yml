@@ -13,3 +13,4 @@ secretGenerator:
 
 patchesStrategicMerge:
   - elasticsearch-tuning.yml
+  - fluentd-tuning.yml
