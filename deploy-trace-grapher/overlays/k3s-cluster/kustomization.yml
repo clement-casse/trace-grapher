@@ -14,7 +14,13 @@ secretGenerator:
     behavior: merge
     namespace: trace-grapher
     env: jupyter.env
- 
+
+configMapGenerator:
+  - name: kubeconfig
+    behavior: replace
+    files:
+      - kube/config
+
 patchesStrategicMerge:
   - jupyter-tuning.yml
   - neo4j-tuning.yml

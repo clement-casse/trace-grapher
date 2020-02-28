@@ -2,6 +2,10 @@
 
 set -eux;
 
+kubectl_version=v1.17.0
+curl -L "https://storage.googleapis.com/kubernetes-release/release/${kubectl_version}/bin/linux/amd64/kubectl" -o /opt/conda/bin/kubectl;
+chmod u+x "/opt/conda/bin/kubectl";
+
 # Install extensions
 conda install --yes --quiet --prefix "${CONDA_DIR}" -c conda-forge \
     ipywidgets \

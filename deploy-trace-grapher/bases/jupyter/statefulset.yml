@@ -83,6 +83,8 @@ spec:
           mountPath: /home/jovyan/work
         - name: before-notebook-scripts
           mountPath: /usr/local/bin/before-notebook.d/
+        - name: kubeconfig
+          mountPath: /home/jovyan/.kube
         readinessProbe:
           tcpSocket:
             port: 8888
@@ -104,6 +106,9 @@ spec:
         configMap:
           name: before-notebook
           defaultMode: 0777
+      - name: kubeconfig
+        configMap:
+          name: kubeconfig
   volumeClaimTemplates:
   - metadata:
       name: jupyter-data
