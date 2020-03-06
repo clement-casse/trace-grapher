@@ -77,6 +77,36 @@ spec:
         ports:
         - containerPort: 9080
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: details-v2
+  labels:
+    app: details
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: details
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: details
+        version: v2
+    spec:
+      containers:
+      - name: details
+        image: docker.io/istio/examples-bookinfo-details-v2:1.15.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9080
+        env:
+        - name: DO_NOT_ENCRYPT
+          value: "true"
+---
+
 ##################################################################################################
 # Ratings service
 ##################################################################################################
@@ -125,6 +155,97 @@ spec:
       - name: ratings
         image: docker.io/istio/examples-bookinfo-ratings-v1:1.15.0
         imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9080
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bookinfo-ratings-v2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratings-v2-mysql
+  labels:
+    app: ratings
+    version: v2-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratings
+      version: v2-mysql
+  template:
+    metadata:
+      labels:
+        app: ratings
+        version: v2-mysql
+    spec:
+      containers:
+      - name: ratings
+        image: docker.io/istio/examples-bookinfo-ratings-v2:1.15.0
+        imagePullPolicy: IfNotPresent
+        env:
+          # ratings-v2 will use mongodb as the default db backend.
+          # if you would like to use mysqldb then you can use this file
+          # which sets DB_TYPE = 'mysql' and the rest of the parameters shown
+          # here and also create the # mysqldb service using bookinfo-mysql.yaml
+          # NOTE: This file is mutually exclusive to bookinfo-ratings-v2.yaml
+          - name: DB_TYPE
+            value: "mysql"
+          - name: MYSQL_DB_HOST
+            value: mysqldb
+          - name: MYSQL_DB_PORT
+            value: "3306"
+          - name: MYSQL_DB_USER
+            value: root
+          - name: MYSQL_DB_PASSWORD
+            value: password
+        ports:
+        - containerPort: 9080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ratings-v2
+  labels:
+    app: ratings
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ratings
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: ratings
+        version: v2
+    spec:
+      serviceAccountName: bookinfo-ratings-v2
+      containers:
+      - name: ratings
+        image: docker.io/istio/examples-bookinfo-ratings-v2:1.15.0
+        imagePullPolicy: IfNotPresent
+        env:
+          # ratings-v2 will use mongodb as the default db backend.
+          # if you would like to use mysqldb then set DB_TYPE = 'mysql', set
+          # the rest of the parameters shown here and also create the
+          # mysqldb service using bookinfo-mysql.yaml
+          # - name: DB_TYPE #default to
+          #   value: "mysql"
+          # - name: MYSQL_DB_HOST
+          #   value: mysqldb
+          # - name: MYSQL_DB_PORT
+          #   value: "3306"
+          # - name: MYSQL_DB_USER
+          #   value: root
+          # - name: MYSQL_DB_PASSWORD
+          #  value: password
+          - name: MONGO_DB_URL
+            value: mongodb://mongodb:27017/test
         ports:
         - containerPort: 9080
 ---
@@ -283,4 +404,97 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-credentials
+type: Opaque
+data:
+  rootpasswd: cGFzc3dvcmQ=
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysqldb
+  labels:
+    app: mysqldb
+spec:
+  ports:
+  - port: 3306
+    name: tcp
+  selector:
+    app: mysqldb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysqldb-v1
+  labels:
+    app: mysqldb
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysqldb
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: mysqldb
+        version: v1
+    spec:
+      containers:
+      - name: mysqldb
+        image: docker.io/istio/examples-bookinfo-mysqldb:1.15.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-credentials
+                key: rootpasswd
+        args: ["--default-authentication-plugin","mysql_native_password"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  labels:
+    app: mongodb
+spec:
+  ports:
+  - port: 27017
+    name: mongo
+  selector:
+    app: mongodb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-v1
+  labels:
+    app: mongodb
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        version: v1
+    spec:
+      containers:
+      - name: mongodb 
+        image: istio/examples-bookinfo-mongodb:1.15.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 27017
 ---

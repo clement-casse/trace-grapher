@@ -9,6 +9,6 @@ spec:
   - hosts: [ "*" ]
     port:
       number: 8080
-      name: http
-      protocol: HTTP
+      name: http2
+      protocol: HTTP2
     
