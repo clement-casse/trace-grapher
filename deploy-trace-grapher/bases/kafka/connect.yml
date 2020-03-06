@@ -1,7 +1,7 @@
 apiVersion: kafka.strimzi.io/v1beta1
 kind: KafkaConnect
 metadata:
-  name: tracing-cluster
+  name: itinerix-cluster
   labels:
     monitoredBy: prometheus
 
@@ -9,7 +9,7 @@ spec:
   image: "razalgethi/trace-grapher-strimzi-kafka-connect"
   version: 2.4.0
   replicas: 1
-  bootstrapServers: tracing-cluster-kafka-bootstrap.trace-grapher.cluster.local:9092
+  bootstrapServers: itinerix-cluster-kafka-bootstrap:9092
   jvmOptions:
     -Xms: "256M"
     -Xmx: "256M"

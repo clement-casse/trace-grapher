@@ -1,7 +1,7 @@
 apiVersion: kafka.strimzi.io/v1beta1
 kind: Kafka
 metadata:
-  name: tracing-cluster
+  name: itinerix-cluster
   labels:
     monitoredBy: prometheus
 

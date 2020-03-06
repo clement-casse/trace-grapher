@@ -1,7 +1,7 @@
 apiVersion: kafka.strimzi.io/v1beta1
 kind: Kafka
 metadata:
-  name: tracing-cluster
+  name: itinerix-cluster
 
 spec:
   kafka:
@@ -34,7 +34,7 @@ spec:
 apiVersion: kafka.strimzi.io/v1beta1
 kind: KafkaConnect
 metadata:
-  name: tracing-cluster
+  name: itinerix-cluster
 
 spec:
   replicas: 2

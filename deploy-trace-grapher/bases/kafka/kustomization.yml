@@ -3,5 +3,6 @@ kind: Kustomization
 
 resources:
   - connect.yml
+  - connect-ui.yml
   - cluster.yml
   - topic.yml
