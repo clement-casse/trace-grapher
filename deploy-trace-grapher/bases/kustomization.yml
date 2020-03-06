@@ -3,9 +3,15 @@ kind: Kustomization
 
 namespace: trace-grapher
 
+configMapGenerator:
+  - name: kubeconfig
+    files:
+      - sample-kubeconfig
+
 bases:
   - neo4j
   - jupyter
+  - kafka
 
 resources:
   - gateway.yml

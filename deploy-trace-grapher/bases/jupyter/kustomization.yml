@@ -17,9 +17,6 @@ configMapGenerator:
   - name: before-notebook
     files:
       - startup-hooks/prepare-env.sh
-  - name: kubeconfig
-    files:
-      - kube/config
 
 
 resources:
