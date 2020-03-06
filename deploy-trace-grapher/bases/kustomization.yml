@@ -11,7 +11,7 @@ configMapGenerator:
 bases:
   - neo4j
   - jupyter
-  - kafka
+  - kafka-connect
 
 resources:
   - gateway.yml

@@ -4,10 +4,12 @@ kind: Kustomization
 namespace: monitoring-stack
 
 bases:
+  - alertmanager
   - fluentd
   - node-exporter
   - grafana
   - jaeger-tracing
+  - kafka
   - kube-state-metrics
   - metric-server
   - opentelemetry

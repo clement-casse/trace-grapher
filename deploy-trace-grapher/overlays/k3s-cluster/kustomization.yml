@@ -24,4 +24,4 @@ configMapGenerator:
 patchesStrategicMerge:
   - jupyter-tuning.yml
   - neo4j-tuning.yml
-  - kafka-tuning.yml
+  - kafka-connect-tuning.yml

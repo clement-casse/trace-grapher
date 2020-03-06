@@ -7,6 +7,11 @@ metadata:
 spec:
   externalUrl: /prometheus/
   routePrefix: /prometheus/
+  alerting:
+    alertmanagers:
+    - name: alertmanager-main
+      namespace: monitoring-stack
+      port: http-web
   resources:
     requests:
       memory: 400Mi

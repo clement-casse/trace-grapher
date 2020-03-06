@@ -1,7 +1,7 @@
 apiVersion: kafka.strimzi.io/v1beta1
 kind: Kafka
 metadata:
-  name: itinerix-cluster
+  name: kafka-cluster
 
 spec:
   kafka:
@@ -29,22 +29,3 @@ spec:
       requests:
         memory: 512Mi
         cpu: 100m
-
----
-apiVersion: kafka.strimzi.io/v1beta1
-kind: KafkaConnect
-metadata:
-  name: itinerix-cluster
-
-spec:
-  replicas: 2
-  jvmOptions:
-    -Xms: "256M"
-    -Xmx: "256M"
-  resources:
-    limits:
-      memory: 1Gi
-      cpu: "2"
-    requests:
-      memory: 1Gi
-      cpu: "500m"

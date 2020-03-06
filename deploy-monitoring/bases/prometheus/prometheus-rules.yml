@@ -1,10 +1,10 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
+  name: prometheus-k8s-rules
   labels:
     prometheus: k8s
     role: alert-rules
-  name: prometheus-k8s-rules
 spec:
   groups:
   - name: node-exporter.rules
@@ -39,10 +39,10 @@ spec:
         rate(node_vmstat_pgmajfault{job="node-exporter"}[1m])
       record: instance:node_vmstat_pgmajfault:rate1m
     - expr: |
-        rate(node_disk_io_time_seconds_total{job="node-exporter", device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+"}[1m])
+        rate(node_disk_io_time_seconds_total{job="node-exporter", device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|dasd.+"}[1m])
       record: instance_device:node_disk_io_time_seconds:rate1m
     - expr: |
-        rate(node_disk_io_time_weighted_seconds_total{job="node-exporter", device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+"}[1m])
+        rate(node_disk_io_time_weighted_seconds_total{job="node-exporter", device=~"nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|dasd.+"}[1m])
       record: instance_device:node_disk_io_time_weighted_seconds:rate1m
     - expr: |
         sum without (device) (
@@ -270,6 +270,36 @@ spec:
       record: count:up1
     - expr: count without(instance, pod, node) (up == 0)
       record: count:up0
+  - name: kube-state-metrics
+    rules:
+    - alert: KubeStateMetricsListErrors
+      annotations:
+        message: kube-state-metrics is experiencing errors at an elevated rate in
+          list operations. This is likely causing it to not be able to expose metrics
+          about Kubernetes objects correctly or at all.
+        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubestatemetricslisterrors
+      expr: |
+        (sum(rate(kube_state_metrics_list_total{job="kube-state-metrics",result="error"}[5m]))
+          /
+        sum(rate(kube_state_metrics_list_total{job="kube-state-metrics"}[5m])))
+        > 0.01
+      for: 15m
+      labels:
+        severity: critical
+    - alert: KubeStateMetricsWatchErrors
+      annotations:
+        message: kube-state-metrics is experiencing errors at an elevated rate in
+          watch operations. This is likely causing it to not be able to expose metrics
+          about Kubernetes objects correctly or at all.
+        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubestatemetricswatcherrors
+      expr: |
+        (sum(rate(kube_state_metrics_watch_total{job="kube-state-metrics",result="error"}[5m]))
+          /
+        sum(rate(kube_state_metrics_watch_total{job="kube-state-metrics"}[5m])))
+        > 0.01
+      for: 15m
+      labels:
+        severity: critical
   - name: node-exporter
     rules:
     - alert: NodeFilesystemSpaceFillingUp
@@ -299,7 +329,7 @@ spec:
         summary: Filesystem is predicted to run out of space within the next 4 hours.
       expr: |
         (
-          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 20
+          node_filesystem_avail_bytes{job="node-exporter",fstype!=""} / node_filesystem_size_bytes{job="node-exporter",fstype!=""} * 100 < 15
         and
           predict_linear(node_filesystem_avail_bytes{job="node-exporter",fstype!=""}[6h], 4*60*60) < 0
         and
@@ -1010,7 +1040,7 @@ spec:
           in less than 7.0 days.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclientcertificateexpiration
       expr: |
-        apiserver_client_certificate_expiration_seconds_count{job="apiserver"} > 0 and histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="apiserver"}[5m]))) < 604800
+        apiserver_client_certificate_expiration_seconds_count{job="apiserver"} > 0 and on(job) histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="apiserver"}[5m]))) < 604800
       labels:
         severity: warning
     - alert: KubeClientCertificateExpiration
@@ -1019,7 +1049,7 @@ spec:
           in less than 24.0 hours.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclientcertificateexpiration
       expr: |
-        apiserver_client_certificate_expiration_seconds_count{job="apiserver"} > 0 and histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="apiserver"}[5m]))) < 86400
+        apiserver_client_certificate_expiration_seconds_count{job="apiserver"} > 0 and on(job) histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="apiserver"}[5m]))) < 86400
       labels:
         severity: critical
     - alert: KubeAPIDown
@@ -1048,6 +1078,7 @@ spec:
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubenodeunreachable
       expr: |
         kube_node_spec_taint{job="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"} == 1
+      for: 2m
       labels:
         severity: warning
     - alert: KubeletTooManyPods
