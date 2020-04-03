@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 bases:
-  - ../../extras
+  - ../../bases
 
 secretGenerator:
   - name: grafana-env
@@ -12,6 +12,5 @@ secretGenerator:
 
 
 patchesStrategicMerge:
-  - elasticsearch-tuning.yml
-  - fluentd-tuning.yml
-  - kafka-tuning.yml
+  - prometheus-patch.yml
+  - tracing-lb-patch.yml
