@@ -260,13 +260,27 @@ init-istio: controlplane.yml
 	@echo "Waiting for istio components pilot and citadel to be ready"
 	@kubectl wait 'deployment/istio-pilot'   --for=condition=available --timeout=300s -n istio-system
 	@kubectl wait 'deployment/istio-citadel' --for=condition=available --timeout=300s -n istio-system
-	@echo "Applying custom loadbalancer for the ingress gateway"
-	@kubectl apply -n istio-system -f ingressgateway-lb.yml
+	#@echo "Applying custom loadbalancer for the ingress gateway"
+	#@kubectl apply -n istio-system -f ingressgateway-lb.yml
 
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
 remove-istio: controlplane.yml
 	@-$(ISTIOCTL) manifest generate -f $< | kubectl delete -f -
+
+
+get-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)/
+DOWNLOADED_OPERATORS += _init/certmanager-$(CERTMANAGER_VERSION)/
+_init/certmanager-$(CERTMANAGER_VERSION)/:
+	@mkdir -p $@
+	@curl --silent --location \
+		https://github.com/jetstack/cert-manager/releases/download/$(CERTMANAGER_VERSION)/cert-manager.yaml \
+		> $@/cert-manager.yaml
+
+
+OPERATOR_INSTALL_TARGETS += init-certmanager
+init-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)/cert-manager.yaml
+	kubectl apply --validate=false -f $<
 
 
 ########------------------------------------------------------------------------------########

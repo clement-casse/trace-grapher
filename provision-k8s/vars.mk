@@ -15,3 +15,6 @@ PROM_OPERATOR_NS := prometheus-system
 
 # Istio Version
 ISTIO_VERSION := 1.4.4
+
+
+CERTMANAGER_VERSION := v0.14.0
