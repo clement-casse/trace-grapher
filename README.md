@@ -32,54 +32,47 @@ Their main purpose is helping the developer to understand interactions between t
 [8]: https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/data-semantic-conventions.md#span-conventions "Span Semantic Conventions"
 [9]: https://medium.com/@copyconstruct/distributed-tracing-weve-been-doing-it-wrong-39fc92a857df "Distributed Tracing — we’ve been doing it wrong Cindy Sridharan"
 
-## Model
+## About this project
 
-### Expressing OpenTelemetry data as a property graph
+This project is a part of my PhD experimentation platform: in this repository some Kubernetes manifest files instantiate a validation platform providing both **metrics** and **traces** for sample Cloud Applications.
+These monitored applications are classical micro-services demonstration platforms in which anomalous behavior may easily be injected.
 
-According to OpenTelemetry Specifications (still work in progress as the time of writing) a *Trace* is an aggregation of *Spans*.
-*Spans* represent the time taken to do an action and bear also some semantic information about the measurement.
-Each *Span* is associated with :
+The platform is made of the following components:
 
-- an *Operation*, which represents the intent of this action
-- a *Resource*, which represents its executor
+- **A namespace `monitoring-stack`**: Cloud APM are deployed in this namespace:
+  - **Prometheus** is the monitoring tool that pulls metrics from the various components in the system and store them in its time-serie Database.
+  - **Jaeger** is the monitoring tools that collects and aggregates tracing data, structuring them in traces and proving a web view of these traces.
+  - **OpenTelemetry Collector** is a part of the monitoring data flow, OpenTelemetry is a project which aims to normalize tracing and metrics by enhancing the capability of correlation between the two data-sources. This project is still mature for production but it look promising and have a very active community.
+  - A variety of other tools that are used by either Prometheus or Jaeger.
+- **Istio Service-Mesh**: A Service-Mesh is a set of network-proxies intercepting service-to-service communications manage by a logically centralized control-plane. The Service-Mesh is used both to Observe and Control cross-services communications, it creates the tracing data collected and aggregated by Jaeger and is able to overwrite services responses to inject errors/delay.
+- **A `default` namespace**: Where the monitored application lives.
 
-![OpenTelemetry Property Graph Meta-Model](https://docs.google.com/drawings/d/e/2PACX-1vTU8yfwfsLbpB3zEs7_-8g_zVF3T77s5iem4hotwDhw5mEbhbyWwzMHHzg8tsRHwILKtgzMqQHLJAC0/pub?w=1440&amp;h=1080)
+> Service-Meshes are, as of today, the most transparent solution allowing to have tracing data in a Kubernetes Cluster without modifying application code.
 
-> **To Do List:**
->
-> - [ ] Implement the relationship `(:Span)-[:REFERENCE]->(:Span)` from te model in the PoC to be able to do root-cause analysis.
-> - [ ] Make resources not identified only by their name but by the whole set of properties of the vertex: the current implementation would hide load-balanced services or upgraded ones.
-> - [ ] Add the notion of [metrics and measurement](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-metrics.md)
+Both Prometheus and Jaeger have their Web-UI mapped outside of the cluster, this allows their API to be queries by external sources :
 
-### Extending the model
+![Architecture](https://docs.google.com/drawings/d/e/2PACX-1vQWQs1rYiCxHqaHzJGNZW6mpdt_XjOI0oKvMqRvDgJcuvNZJokMbSXYA1g1QqF74smHIdS0R16G_hhf/pub?w=853&amp;h=1208)
 
-> Still WIP
+### Monitoring scope of this project
 
-## Implementation
+Whereas distributed tracing is not a Kubernetes-specific monitoring data, as of today, it is this ecosystem that tracing is the most tested.
+Nowadays Kubernetes platform are usually made of a custom OS installed on different machines in a IaaS to ensure multi-tenancy.
+In that context, the monitoring scope of the Cloud application should cover all the abstraction layers managed by *Application Developers*:
 
-The Goal of this project is to provide a Distributed Tracing collector capable of ingesting traces from a Cloud Application and make this data available for other tools to consume data.
-It uses the [Jaeger Application](https://www.jaegertracing.io/) which is one of the most used solutions for collecting such traces as of today.
-
-### Architecture
-
-The application is built on top of a [Jaeger deployment based on Kafka](https://www.jaegertracing.io/docs/1.14/deployment/#kafka) to store Spans before joining them into Traces.
-The stream of Spans is consumed by Kafka-Connect that execute a [Cypher query](setup/trace-to-graph-mapping.cypher) to push data in Neo4j.
-
-For the moment graph manipulation is done through Neo4j Web-UI, although the goal remains to make the pipeline go a step further by automating this graph analysis.
-
-![Architecture](https://docs.google.com/drawings/d/e/2PACX-1vSlGvjSOVp4mCCCZwOfgbp1Dvl6InGC1wrb9KNi-eUAjBdWwdqYtZxIo5R8aHMphAwwkCOUc7V557CC/pub?w=1912&amp;h=1208)
+- **Infrastructure**: Virtual Machines and Virtual Networks are still managed by the *Application Developers*, although the Operating System is managed by a Third-Party.
+  Cloud Providers usually bill their clients based on the number of "Nodes" (= VM) they have in the cluster, therefore *Application Developers* need to keep track of the capacity and usage of the pool resource they pay for.
+  Infrastructure is still in the scope of monitoring while subscribing to a managed Kubernetes.
+- **Containers Orchestration**
+- **Containers**
 
 ## How to run the trace grapher
 
-### Dependencies
+This repository goal is just to provide an experimentation platform providing State-of-the-Art Monitoring Data for Cloud applications.
+A Jupyter Notebook deployment integrated with Prometheus and Jaeger is also provided in the directory `./deploy-trace-grapher`, however example notebooks are note present in this repository (...yet?).
 
-To deploy the stack, either on the local machine (with `docker-compose`) or on a Kubernetes Cluster, the machine needs to have docker installed.
-Indeed, all build / deployment tools are embedded in a docker image, this image requires
+### Launch the stack locally with `docker-compose`
 
-- either to bind `/var/run/docker.sock` for a local deployment
-- either to have the kube-config file mounted as the file `/root/.kube/config` in the container
-
-To be able to run make, start a shell in the container that has all tools to run the Makefiles :
+This project undergo major changes of scope frequently and the deployment is not automated (... yet?).
 
 ```sh
 docker-compose run stack-builder
@@ -87,10 +80,6 @@ docker-compose run stack-builder
 
 make # add whatever target you want
 ```
-
-> Automatic build is still WIP
-
-### Launch the stack locally with `docker-compose`
 
 Be sure variables in the file `vars.mk` meet the requirement of your target environment and use `make`: this will both deploy and setup the pipeline consuming traces from Kafka and sending them to Neo4j.
 
