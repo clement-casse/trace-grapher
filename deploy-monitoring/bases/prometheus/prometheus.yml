@@ -17,7 +17,7 @@ spec:
     key: prometheus-additional.yaml
   resources:
     requests:
-      memory: 400Mi
+      memory: 100Mi
   securityContext:
     fsGroup: 2000
     runAsNonRoot: true

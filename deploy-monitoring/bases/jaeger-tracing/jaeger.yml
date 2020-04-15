@@ -5,6 +5,12 @@ metadata:
 spec:
   strategy: allInOne
 
+  allInOne:
+    options:
+      log-level: debug
+      query:
+        base-path: /jaeger
+
   query:
     options:
       query:

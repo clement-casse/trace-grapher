@@ -14,7 +14,7 @@ ECK_VERSION := 1.0.1
 PROM_OPERATOR_NS := prometheus-system
 
 # Istio Version
-ISTIO_VERSION := 1.4.4
+ISTIO_VERSION := 1.4.6
 
 
 CERTMANAGER_VERSION := v0.14.0

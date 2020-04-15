@@ -16,6 +16,7 @@ OVERLAY ?= docker-desktop
 	get-jaeger  init-jaeger  remove-jaeger \
 	get-prometheus init-prometheus remove-prometheus \
 	get-istio   init-istio   remove-istio \
+	init-certmanager init-certmanager remove-certmanager \
 	get-operators install-operators configure-operators \
 	wipe purge
 
@@ -255,18 +256,13 @@ ISTIOCTL := $(realpath _init)/istio-$(ISTIO_VERSION)/bin/istioctl
 
 
 OPERATOR_INSTALL_TARGETS += init-istio
-init-istio: controlplane.yml
-	$(ISTIOCTL) manifest apply -f $<
-	@echo "Waiting for istio components pilot and citadel to be ready"
-	@kubectl wait 'deployment/istio-pilot'   --for=condition=available --timeout=300s -n istio-system
-	@kubectl wait 'deployment/istio-citadel' --for=condition=available --timeout=300s -n istio-system
-	#@echo "Applying custom loadbalancer for the ingress gateway"
-	#@kubectl apply -n istio-system -f ingressgateway-lb.yml
+init-istio: controlplane.yml _init/istio-$(ISTIO_VERSION)/
+	$(ISTIOCTL) manifest apply -f $< 
 
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
-remove-istio: controlplane.yml
-	@-$(ISTIOCTL) manifest generate -f $< | kubectl delete -f -
+remove-istio:
+	@-$(ISTIOCTL) manifest generate | kubectl delete -f -
 
 
 get-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)/
@@ -279,8 +275,15 @@ _init/certmanager-$(CERTMANAGER_VERSION)/:
 
 
 OPERATOR_INSTALL_TARGETS += init-certmanager
-init-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)/cert-manager.yaml
-	kubectl apply --validate=false -f $<
+init-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)
+	@kubectl apply --validate=false -f $</cert-manager.yaml
+
+
+OPERATOR_REMOVAL_TARGETS += remove-certmanager
+remove-certmanager: _init/certmanager-operator-$(CERTMANAGER_VERSION)/
+	@echo "Removing Cert Manger ..."
+	@-kubectl delete -f $</cert-manager.yaml
+	@echo "Done !"
 
 
 ########------------------------------------------------------------------------------########
@@ -292,8 +295,7 @@ install-operators: $(OPERATOR_INSTALL_TARGETS)
 
 
 wipe: $(OPERATOR_REMOVAL_TARGETS)
-	@-kubectl wait 'deployment/istio-policy'  --for=condition=terminated --timeout=300s -n istio-system
-	@-kubectl wait 'deployment/istio-citadel' --for=condition=terminated --timeout=300s -n istio-system
+
 
 purge:
 	@-rm -rf $(DOWNLOADED_OPERATORS)

@@ -14,6 +14,5 @@ resources:
   - clusterRoleBindingDelegator.yml
   - clusterRoleServerResources.yml
   - deployment.yml
-  - roleBindingAuthReader.yml
   - service.yml
   - serviceAccount.yml
