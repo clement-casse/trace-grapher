@@ -13,4 +13,3 @@ secretGenerator:
 
 patchesStrategicMerge:
   - prometheus-patch.yml
-  - tracing-lb-patch.yml
