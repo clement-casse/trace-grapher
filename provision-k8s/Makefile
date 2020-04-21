@@ -33,9 +33,9 @@ OPERATOR_REMOVAL_TARGETS :=
 
 ## `get-strimzi` Downloads Strimzy-Operator installation procedure for Kubernetes
 ##               these files are removed when the `purge` target is executed
-get-strimzi: _init/strimzi-operator
-DOWNLOADED_OPERATORS += _init/strimzi-operator
-_init/strimzi-operator:
+get-strimzi: _init/strimzi-operator-$(STRIMZI_VERSION)
+DOWNLOADED_OPERATORS += _init/strimzi-operator-$(STRIMZI_VERSION)
+_init/strimzi-operator-$(STRIMZI_VERSION):
 	@echo "Downloading Strimzi version $(STRIMZI_VERSION)"
 	@mkdir -p ./$@
 	@curl --silent --location \
@@ -48,7 +48,7 @@ _init/strimzi-operator:
 ##                strimzi CRDs and RBAC. It does not instanciate any Kafka broker nor zookeeper.
 ##                Operator, CRDs & RBAC are removed with `remove-strimzi`.
 OPERATOR_INSTALL_TARGETS += init-strimzi
-init-strimzi: _init/strimzi-operator
+init-strimzi: _init/strimzi-operator-$(STRIMZI_VERSION)
 	@-kubectl create namespace $(STRIMZI_OPERATOR_NS)
 	@echo "Changing namespace references in YAML files."
 	@sed -i 's/namespace: .*/namespace: $(STRIMZI_OPERATOR_NS)/' $</install/cluster-operator/*RoleBinding*.yaml
@@ -60,27 +60,27 @@ init-strimzi: _init/strimzi-operator
 		'spec.template.spec.containers[0].env[0].value' "*"
 	@echo "Done !"
 	@kubectl apply -f '$</install/cluster-operator/' -n $(STRIMZI_OPERATOR_NS)
-	@-kubectl create clusterrolebinding strimzi-cluster-operator-namespaced                 \
+	@-kubectl create clusterrolebinding strimzi-cluster-operator-namespaced \
 		--clusterrole=strimzi-cluster-operator-namespaced --serviceaccount $(STRIMZI_OPERATOR_NS):strimzi-cluster-operator
 	@-kubectl create clusterrolebinding strimzi-cluster-operator-entity-operator-delegation \
 		--clusterrole=strimzi-entity-operator --serviceaccount $(STRIMZI_OPERATOR_NS):strimzi-cluster-operator
-	@-kubectl create clusterrolebinding strimzi-cluster-operator-topic-operator-delegation  \
+	@-kubectl create clusterrolebinding strimzi-cluster-operator-topic-operator-delegation \
 		--clusterrole=strimzi-topic-operator --serviceaccount $(STRIMZI_OPERATOR_NS):strimzi-cluster-operator
 	@kubectl wait 'deployment/strimzi-cluster-operator' --for=condition=available --timeout=300s -n $(STRIMZI_OPERATOR_NS)
 
 
 ## `remove-strimzi` Deletes the Cluster Operator Deployment, the strimzi CRD and RBAC
 OPERATOR_REMOVAL_TARGETS += remove-strimzi
-remove-strimzi: _init/strimzi-operator
+remove-strimzi: _init/strimzi-operator-$(STRIMZI_VERSION)
 	@-kubectl delete -f '$</install/cluster-operator/' -n $(STRIMZI_OPERATOR_NS)
 	@-kubectl delete namespace $(STRIMZI_OPERATOR_NS)
 
 
 ## `get-ECK` Downloads the Elastic Cloud Kubernetes Operator into the ECK folder.
 ##           It does not instanciate any Elastic Operator nor Elasticsearch cluster.
-get-ECK: _init/ECK-operator
-DOWNLOADED_OPERATORS += _init/ECK-operator
-_init/ECK-operator:
+get-ECK: _init/ECK-operator-$(ECK_VERSION)
+DOWNLOADED_OPERATORS += _init/ECK-operator-$(ECK_VERSION)
+_init/ECK-operator-$(ECK_VERSION):
 	@mkdir -p $@
 	@echo "Downloading Elastic Cloud Kubernetes operator"
 	@curl --silent \
@@ -94,7 +94,7 @@ _init/ECK-operator:
 ##            operator need to communicate with ES API so adding it to the Data-Plane
 ##            Ref: https://github.com/elastic/cloud-on-k8s/issues/2064#issuecomment-547903913
 OPERATOR_INSTALL_TARGETS += init-ECK
-init-ECK: _init/ECK-operator
+init-ECK: _init/ECK-operator-$(ECK_VERSION)
 	@kubectl apply -f $</all-in-one.yaml
 	@sleep 5
 	@kubectl wait 'pod/elastic-operator-0' --for=condition=Ready --timeout=300s -n elastic-system
@@ -103,14 +103,14 @@ init-ECK: _init/ECK-operator
 ## `remove-ECK` Removes the Elasctic Cloud Kubernetes Operator frome the cluster,
 ##              However the ECK directory is not removed.
 OPERATOR_REMOVAL_TARGETS += remove-ECK
-remove-ECK: _init/ECK-operator
+remove-ECK: _init/ECK-operator-$(ECK_VERSION)
 	@-kubectl delete -f $</all-in-one.yaml
 
 
 ## `get-jaeger` 
-get-jaeger: _init/jaeger-operator
-DOWNLOADED_OPERATORS += _init/jaeger-operator
-_init/jaeger-operator:
+get-jaeger: _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION)
+DOWNLOADED_OPERATORS += _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION)
+_init/jaeger-operator-$(JAEGER_OPERATOR_VERSION):
 	@mkdir -p $@
 	@echo "Downloading Jaeger Operator"
 	@curl --silent \
@@ -138,42 +138,42 @@ _init/jaeger-operator:
 
 
 OPERATOR_INSTALL_TARGETS += init-jaeger
-init-jaeger: _init/jaeger-operator
+init-jaeger: _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION)
 	@-kubectl create namespace $(JAEGER_OPERATOR_NS)
-	@kubectl apply -f $</jaegertracing.io_jaegers_crd.yaml
-	@kubectl apply -f $</service_account.yaml
-	@kubectl apply -f $</role.yaml
-	@kubectl apply -f $</role_binding.yaml
-	@kubectl apply -f $</operator.yaml
+	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</jaegertracing.io_jaegers_crd.yaml
+	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</service_account.yaml
+	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</role.yaml
+	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</role_binding.yaml
+	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</operator.yaml
 	@kubectl wait 'deployment/jaeger-operator' --for=condition=available --timeout=300s -n $(JAEGER_OPERATOR_NS)
 
 
 OPERATOR_REMOVAL_TARGETS += remove-jaeger
-remove-jaeger: _init/jaeger-operator
-	@-kubectl delete -f $</operator.yaml
-	@-kubectl delete -f $</role_binding.yaml
-	@-kubectl delete -f $</role.yaml
-	@-kubectl delete -f $</service_account.yaml
-	@-kubectl delete -f $</jaegertracing.io_jaegers_crd.yaml
+remove-jaeger: _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION)
+	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</operator.yaml
+	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</role_binding.yaml
+	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</role.yaml
+	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</service_account.yaml
+	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</jaegertracing.io_jaegers_crd.yaml
 	@-kubectl delete namespace $(JAEGER_OPERATOR_NS)
 
 
-get-prometheus: _init/prometheus-operator
-DOWNLOADED_OPERATORS += _init/prometheus-operator
-_init/prometheus-operator:
+get-prometheus: _init/prometheus-operator-$(PROM_OPERATOR_VERSION)
+DOWNLOADED_OPERATORS += _init/prometheus-operator-$(PROM_OPERATOR_VERSION)
+_init/prometheus-operator-$(PROM_OPERATOR_VERSION):
 	@mkdir -p $@
 	@echo "Downloading CoreOS Prometheus Operator"
 	@curl --silent \
-		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-deployment.yaml \
+		https://raw.githubusercontent.com/coreos/prometheus-operator/$(PROM_OPERATOR_VERSION)/example/rbac/prometheus-operator/prometheus-operator-deployment.yaml \
 		> $@/prometheus-operator-deployment.yaml
 	@curl --silent \
-		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml \
+		https://raw.githubusercontent.com/coreos/prometheus-operator/$(PROM_OPERATOR_VERSION)/example/rbac/prometheus-operator/prometheus-operator-cluster-role.yaml \
 		> $@/prometheus-operator-cluster-role.yaml
 	@curl --silent \
-		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-cluster-role-binding.yaml \
+		https://raw.githubusercontent.com/coreos/prometheus-operator/$(PROM_OPERATOR_VERSION)/example/rbac/prometheus-operator/prometheus-operator-cluster-role-binding.yaml \
 		> $@/prometheus-operator-cluster-role-binding.yaml
 	@curl --silent \
-		https://raw.githubusercontent.com/coreos/prometheus-operator/master/example/rbac/prometheus-operator/prometheus-operator-service-account.yaml \
+		https://raw.githubusercontent.com/coreos/prometheus-operator/$(PROM_OPERATOR_VERSION)/example/rbac/prometheus-operator/prometheus-operator-service-account.yaml \
 		> $@/prometheus-operator-service-account.yaml
 	@echo "Done !"
 	@echo "Changing namespace references in YAML files."
@@ -184,7 +184,7 @@ _init/prometheus-operator:
 
 
 OPERATOR_INSTALL_TARGETS += init-prometheus
-init-prometheus: _init/prometheus-operator
+init-prometheus: _init/prometheus-operator-$(PROM_OPERATOR_VERSION)
 	@-kubectl create namespace $(PROM_OPERATOR_NS)
 	@kubectl apply -f $</prometheus-operator-deployment.yaml
 	@kubectl apply -f $</prometheus-operator-cluster-role.yaml
@@ -193,7 +193,7 @@ init-prometheus: _init/prometheus-operator
 
 
 OPERATOR_REMOVAL_TARGETS += remove-prometheus
-remove-prometheus: _init/prometheus-operator
+remove-prometheus: _init/prometheus-operator-$(PROM_OPERATOR_VERSION)
 	@echo "Removing Prometheus Operator ..."
 	@-kubectl delete -f $</prometheus-operator-service-account.yaml
 	@-kubectl delete -f $</prometheus-operator-cluster-role-binding.yaml
@@ -257,7 +257,7 @@ ISTIOCTL := $(realpath _init)/istio-$(ISTIO_VERSION)/bin/istioctl
 
 OPERATOR_INSTALL_TARGETS += init-istio
 init-istio: controlplane.yml _init/istio-$(ISTIO_VERSION)/
-	$(ISTIOCTL) manifest apply -f $< 
+	$(ISTIOCTL) manifest apply -f $<
 
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
