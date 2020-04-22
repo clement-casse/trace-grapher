@@ -5,7 +5,7 @@ FROM docker:dind
 
 ARG dockercompose_version=1.25.0
 ARG kubectl_version=v1.17.0
-ARG yq_version=2.4.1
+ARG yq_version=3.3.0
 
 RUN set -eux; \
     apk add --no-cache \

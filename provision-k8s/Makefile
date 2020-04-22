@@ -41,6 +41,14 @@ _init/strimzi-operator-$(STRIMZI_VERSION):
 	@curl --silent --location \
 		"https://github.com/strimzi/strimzi-kafka-operator/releases/download/$(STRIMZI_VERSION)/strimzi-$(STRIMZI_VERSION).tar.gz" \
 	| tar --extract --gzip --directory="$@" --strip-components=1 --exclude=docs/
+	@echo "Changing namespace references in YAML files."
+	@sed -i 's/namespace: .*/namespace: $(STRIMZI_OPERATOR_NS)/' $@/install/cluster-operator/*RoleBinding*.yaml
+	@yq delete --inplace \
+		'$@/install/cluster-operator/050-Deployment-strimzi-cluster-operator.yaml' \
+		'spec.template.spec.containers.(name==strimzi-cluster-operator).env.(name==STRIMZI_NAMESPACE).valueFrom'
+	@yq write --inplace \
+		'$@/install/cluster-operator/050-Deployment-strimzi-cluster-operator.yaml' \
+		'spec.template.spec.containers.(name==strimzi-cluster-operator).env.(name==STRIMZI_NAMESPACE).value' "*"
 	@echo "Done !"
 
 
@@ -50,15 +58,6 @@ _init/strimzi-operator-$(STRIMZI_VERSION):
 OPERATOR_INSTALL_TARGETS += init-strimzi
 init-strimzi: _init/strimzi-operator-$(STRIMZI_VERSION)
 	@-kubectl create namespace $(STRIMZI_OPERATOR_NS)
-	@echo "Changing namespace references in YAML files."
-	@sed -i 's/namespace: .*/namespace: $(STRIMZI_OPERATOR_NS)/' $</install/cluster-operator/*RoleBinding*.yaml
-	@yq delete --inplace \
-		'$</install/cluster-operator/050-Deployment-strimzi-cluster-operator.yaml' \
-		'spec.template.spec.containers[0].env[0].valueFrom'
-	@yq write --inplace \
-		'$</install/cluster-operator/050-Deployment-strimzi-cluster-operator.yaml' \
-		'spec.template.spec.containers[0].env[0].value' "*"
-	@echo "Done !"
 	@kubectl apply -f '$</install/cluster-operator/' -n $(STRIMZI_OPERATOR_NS)
 	@-kubectl create clusterrolebinding strimzi-cluster-operator-namespaced \
 		--clusterrole=strimzi-cluster-operator-namespaced --serviceaccount $(STRIMZI_OPERATOR_NS):strimzi-cluster-operator
@@ -128,23 +127,37 @@ _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION):
 	@curl --silent \
 		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/$(JAEGER_OPERATOR_VERSION)/deploy/operator.yaml \
 		> $@/operator.yaml
+	@curl --silent \
+		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/$(JAEGER_OPERATOR_VERSION)/deploy/cluster_role.yaml \
+		> $@/cluster_role.yaml
+	@curl --silent \
+		https://raw.githubusercontent.com/jaegertracing/jaeger-operator/$(JAEGER_OPERATOR_VERSION)/deploy/cluster_role_binding.yaml \
+		> $@/cluster_role_binding.yaml
 	@echo "Done !"
 	@echo "Changing namespace references in YAML files."
 	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/service_account.yaml
 	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/role.yaml
 	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/role_binding.yaml
 	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/operator.yaml
-	@echo "Done !"
+	@sed -i 's/namespace: .*/namespace: $(JAEGER_OPERATOR_NS)/' $@/cluster_role_binding.yaml
+	@yq delete --inplace '$@/operator.yaml' \
+		'spec.template.spec.containers.(name==jaeger-operator).env.(name==WATCH_NAMESPACE).valueFrom'
+	@yq write --inplace '$@/operator.yaml' \
+		--tag '!!str' \
+		'spec.template.spec.containers.(name==jaeger-operator).env.(name==WATCH_NAMESPACE).value' ''
+	@echo 'Done!'
 
 
 OPERATOR_INSTALL_TARGETS += init-jaeger
 init-jaeger: _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION)
 	@-kubectl create namespace $(JAEGER_OPERATOR_NS)
-	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</jaegertracing.io_jaegers_crd.yaml
 	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</service_account.yaml
 	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</role.yaml
 	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</role_binding.yaml
 	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</operator.yaml
+	@kubectl apply -f $</jaegertracing.io_jaegers_crd.yaml
+	@kubectl apply -f $</cluster_role.yaml
+	@kubectl apply -f $</cluster_role_binding.yaml
 	@kubectl wait 'deployment/jaeger-operator' --for=condition=available --timeout=300s -n $(JAEGER_OPERATOR_NS)
 
 
@@ -154,7 +167,9 @@ remove-jaeger: _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION)
 	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</role_binding.yaml
 	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</role.yaml
 	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</service_account.yaml
-	@-kubectl delete -n $(JAEGER_OPERATOR_NS) -f $</jaegertracing.io_jaegers_crd.yaml
+	@-kubectl delete -f $</jaegertracing.io_jaegers_crd.yaml
+	@-kubectl delete -f $</cluster_role.yaml
+	@-kubectl delete -f $</cluster_role_binding.yaml
 	@-kubectl delete namespace $(JAEGER_OPERATOR_NS)
 
 
