@@ -17,7 +17,7 @@ resources:
   - prometheus-rules.yml
   - service.yml
   - serviceMonitor.yml
-  - serviceMonitorApiServer.yml
+  - serviceMonitorApiserver.yml
   - serviceMonitorCoreDNS.yml
   - serviceMonitorIstio.yml
   - serviceMonitorKubeControllerManager.yml

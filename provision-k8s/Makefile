@@ -203,50 +203,6 @@ remove-prometheus: _init/prometheus-operator-$(PROM_OPERATOR_VERSION)
 	@echo "Done !"
 
 
-get-otel: _init/otel-operator
-DOWNLOADED_OPERATORS += _init/otel-operator
-_init/otel-operator:
-	@mkdir -p "$@"
-	@echo "Downloading OpenTelemetry Operator"
-	@curl --silent \
-		https://raw.githubusercontent.com/open-telemetry/opentelemetry-operator/master/deploy/crds/opentelemetry.io_opentelemetrycollectors_crd.yaml \
-		> $@/opentelemetry.io_opentelemetrycollectors_crd.yaml
-	@curl --silent \
-		https://raw.githubusercontent.com/open-telemetry/opentelemetry-operator/master/deploy/service_account.yaml \
-		> $@/service_account.yaml
-	@curl --silent \
-		https://raw.githubusercontent.com/open-telemetry/opentelemetry-operator/master/deploy/role.yaml \
-		> $@/role.yaml
-	@curl --silent \
-		https://raw.githubusercontent.com/open-telemetry/opentelemetry-operator/master/deploy/role_binding.yaml \
-		> $@/role_binding.yaml
-	@curl --silent \
-		https://raw.githubusercontent.com/open-telemetry/opentelemetry-operator/master/deploy/operator.yaml \
-		> $@/operator.yaml
-	@echo "Done !"
-
-
-OPERATOR_INSTALL_TARGETS += init-otel
-init-otel: _init/otel-operator
-	@-kubectl create namespace monitoring-stack
-	@kubectl apply -n monitoring-stack -f $</opentelemetry.io_opentelemetrycollectors_crd.yaml
-	@kubectl apply -n monitoring-stack -f $</service_account.yaml
-	@kubectl apply -n monitoring-stack -f $</role.yaml
-	@kubectl apply -n monitoring-stack -f $</role_binding.yaml
-	@kubectl apply -n monitoring-stack -f $</operator.yaml
-
-
-OPERATOR_REMOVAL_TARGETS += remove-otel
-remove-otel: _init/otel-operator
-	@echo "Removing OpenTelemetry Operator ..."
-	@-kubectl delete -n monitoring-stack -f $</opentelemetry.io_opentelemetrycollectors_crd.yaml
-	@-kubectl delete -n monitoring-stack -f $</service_account.yaml
-	@-kubectl delete -n monitoring-stack -f $</role.yaml
-	@-kubectl delete -n monitoring-stack -f $</role_binding.yaml
-	@-kubectl delete -n monitoring-stack -f $</operator.yaml
-	@echo "Done !"
-
-
 get-istio: _init/istio-$(ISTIO_VERSION)/
 DOWNLOADED_OPERATORS += _init/istio-$(ISTIO_VERSION)/
 _init/istio-$(ISTIO_VERSION)/:
@@ -256,7 +212,14 @@ ISTIOCTL := $(realpath _init)/istio-$(ISTIO_VERSION)/bin/istioctl
 
 
 OPERATOR_INSTALL_TARGETS += init-istio
-init-istio: controlplane.yml _init/istio-$(ISTIO_VERSION)/
+init-istio: init-istio-$(ISTIO_VERSION)
+
+
+init-istio-1.4.%: controlplane.yml _init/istio-$(ISTIO_VERSION)/
+	$(ISTIOCTL) manifest apply -f $<
+
+
+init-istio-1.5.%: istiooperator.yml _init/istio-$(ISTIO_VERSION)/
 	$(ISTIOCTL) manifest apply -f $<
 
 
@@ -279,8 +242,8 @@ init-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)
 	@kubectl apply --validate=false -f $</cert-manager.yaml
 
 
-OPERATOR_REMOVAL_TARGETS += remove-certmanager
-remove-certmanager: _init/certmanager-operator-$(CERTMANAGER_VERSION)/
+OPERATOR_REMOVAL_TARGETS += _init/certmanager-$(CERTMANAGER_VERSION)/
+remove-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)/
 	@echo "Removing Cert Manger ..."
 	@-kubectl delete -f $</cert-manager.yaml
 	@echo "Done !"
