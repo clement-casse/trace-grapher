@@ -7,13 +7,10 @@ bases:
   - alertmanager
   - node-exporter
   - grafana
-  - jaeger-tracing
   - kube-state-metrics
   - metric-server
-  - opentelemetry
   - prometheus
   - prometheus-adapter
 
 resources:
   - gateway.yml
-  - tracing-lb.yml

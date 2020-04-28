@@ -24,7 +24,7 @@ spec:
           group-id: jaeger-ingester
       ingester:
         deadlockInterval: 0
-        parallelism: 10 # Default: "1000" // too much data at once for neo4j ==> timeout on ingestion and it is not suitable for tests
+        parallelism: 1000
 
   storage:
     type: elasticsearch

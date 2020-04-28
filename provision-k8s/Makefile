@@ -58,6 +58,7 @@ _init/strimzi-operator-$(STRIMZI_VERSION):
 OPERATOR_INSTALL_TARGETS += init-strimzi
 init-strimzi: _init/strimzi-operator-$(STRIMZI_VERSION)
 	@-kubectl create namespace $(STRIMZI_OPERATOR_NS)
+	@-kubectl label namespace $(STRIMZI_OPERATOR_NS) istio-injection=disabled
 	@kubectl apply -f '$</install/cluster-operator/' -n $(STRIMZI_OPERATOR_NS)
 	@-kubectl create clusterrolebinding strimzi-cluster-operator-namespaced \
 		--clusterrole=strimzi-cluster-operator-namespaced --serviceaccount $(STRIMZI_OPERATOR_NS):strimzi-cluster-operator
@@ -151,6 +152,7 @@ _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION):
 OPERATOR_INSTALL_TARGETS += init-jaeger
 init-jaeger: _init/jaeger-operator-$(JAEGER_OPERATOR_VERSION)
 	@-kubectl create namespace $(JAEGER_OPERATOR_NS)
+	@-kubectl label namespace $(JAEGER_OPERATOR_NS) istio-injection=disabled
 	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</service_account.yaml
 	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</role.yaml
 	@kubectl apply -n $(JAEGER_OPERATOR_NS) -f $</role_binding.yaml
@@ -201,6 +203,7 @@ _init/prometheus-operator-$(PROM_OPERATOR_VERSION):
 OPERATOR_INSTALL_TARGETS += init-prometheus
 init-prometheus: _init/prometheus-operator-$(PROM_OPERATOR_VERSION)
 	@-kubectl create namespace $(PROM_OPERATOR_NS)
+	@-kubectl label namespace $(PROM_OPERATOR_NS) istio-injection=disabled
 	@kubectl apply -f $</prometheus-operator-deployment.yaml
 	@kubectl apply -f $</prometheus-operator-cluster-role.yaml
 	@kubectl apply -f $</prometheus-operator-cluster-role-binding.yaml

@@ -4,10 +4,8 @@ kind: Kustomization
 namespace: monitoring-stack
 
 bases:
-  - ../bases
-  - fluentd
-  - elasticsearch
-  - kafka
+  - jaeger-tracing
+
 
 patchesStrategicMerge:
   - jaeger-streaming.yml

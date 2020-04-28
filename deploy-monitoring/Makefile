@@ -15,6 +15,7 @@ OVERLAY ?= docker-desktop
 prepare-monitoring-namespace:
 	@echo "Eventually creating Namespace: $(MONITORING_NS)"
 	@-kubectl create namespace "$(MONITORING_NS)"
+	@-kubectl label namespace "$(MONITORING_NS)" istio-injection=disabled
 
 
 apply-prometheus-rbac: prepare-monitoring-namespace
