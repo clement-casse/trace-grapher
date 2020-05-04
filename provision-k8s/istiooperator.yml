@@ -4,7 +4,7 @@ metadata:
   name: istio-controlplane
   namespace: istio-system
 spec:
-  profile: default
+  profile: demo
   namespace: istio-system
 
   meshConfig:
@@ -56,17 +56,17 @@ spec:
       enabled: true
       k8s:
         replicaCount: 1
-        service:
-          ports:
-          - name: http
-            port: 80
-            targetPort: 80
-          - name: https
-            port: 443
-            targetPort: 443
-          - name: bolt
-            port: 7687
-            targetPort: 7687
+        # service:
+        #   ports:
+        #   - name: http
+        #     port: 80
+        #     targetPort: 80
+        #   - name: https
+        #     port: 443
+        #     targetPort: 443
+        #   - name: bolt
+        #     port: 7687
+        #     targetPort: 7687
         resources:
           limits:
             cpu: 100m
@@ -79,25 +79,20 @@ spec:
           maxReplicas: 1
   addonComponents:
     grafana:
-      enabled: true
-      spec:
-        replicaCount: 1
-        contextPath: /grafana
+      enabled: false
     kiali:
       enabled: true
       spec:
         replicaCount: 1
         contextPath: "/kiali"
-        #prometheusAddr: http://prometheus:9000/prometheus
+        prometheusAddr: http://prometheus-operated.monitoring-stack.svc:9090/prometheus
         dashboard:
           auth:
             strategy: anonymous
-          #grafanaInClusterURL: http://grafana:3000/grafana
-          #jaegerInClusterURL: http://jaeger-query:16686/jaeger
+          grafanaInClusterURL: http://grafana.monitoring-stack:3000/grafana
+          #jaegerInClusterURL: http://jae:/jaege
     prometheus:
-      enabled: true
-      spec:
-        contextPath: /prometheus
+      enabled: false
     tracing:
       enabled: true
       spec:
