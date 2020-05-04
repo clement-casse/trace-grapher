@@ -239,6 +239,7 @@ init-istio-1.4.%: controlplane.yml _init/istio-$(ISTIO_VERSION)/
 
 init-istio-1.5.%: istiooperator.yml _init/istio-$(ISTIO_VERSION)/
 	$(ISTIOCTL) manifest apply -f $<
+	kubectl apply -f istio-system-gateway.yml
 
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
@@ -257,6 +258,8 @@ _init/certmanager-$(CERTMANAGER_VERSION)/:
 
 OPERATOR_INSTALL_TARGETS += init-certmanager
 init-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)
+	@-kubectl create namespace cert-manager
+	@-kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
 	@kubectl apply --validate=false -f $</cert-manager.yaml
 
 

@@ -1,0 +1,137 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-system-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts: [ "*" ]
+    port:
+      number: 15029
+      name: http-kiali
+      protocol: HTTP
+  - hosts: [ "*" ]
+    port:
+      number: 15031
+      name: http-grafana
+      protocol: HTTP
+  - hosts: [ "*" ]
+    port:
+      number: 15032
+      name: http-tracing
+      protocol: HTTP
+
+#
+# KIALI
+#
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kiali
+  namespace: istio-system
+spec:
+  hosts: [ "*" ]
+  gateways:
+  - istio-system-gateway
+  http:
+  - match:
+    - port: 15029
+    - uri:
+        prefix: /kiali
+    route:
+    - destination:
+        host: kiali
+        port:
+          number: 20001
+
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: kiali
+  namespace: istio-system
+spec:
+  host: kiali
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+
+
+
+# GRAFANA
+#
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: grafana
+  namespace: istio-system
+spec:
+  gateways:
+  - istio-system-gateway
+  hosts: [ "*" ]
+  http:
+  - match:
+    - port: 15031
+    route:
+    - destination:
+        host: grafana
+        port:
+          number: 3000
+
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: grafana
+  namespace: istio-system
+spec:
+  host: grafana
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+
+
+#
+# JAEGER
+#
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: jaeger
+  namespace: istio-system
+spec:
+  gateways:
+  - istio-system-gateway
+  hosts: [ "*" ]
+  http:
+  - match:
+    - port: 15032
+    route:
+    - destination:
+        host: tracing
+        port:
+          number: 80
+
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: tracing
+  namespace: istio-system
+spec:
+  host: tracing
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+
+
+---

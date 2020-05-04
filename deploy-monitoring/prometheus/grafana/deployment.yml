@@ -74,6 +74,8 @@ spec:
           name: grafana-dashboard-definitions-5
         - mountPath: /grafana-dashboard-definitions/6/
           name: grafana-dashboard-definitions-6
+        - mountPath: /grafana-dashboard-definitions/7/
+          name: grafana-dashboard-definitions-7
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
@@ -107,3 +109,6 @@ spec:
       - name: grafana-dashboard-definitions-6
         configMap:
           name: grafana-dashboard-definitions-6
+      - name: grafana-dashboard-definitions-7
+        configMap:
+          name: grafana-dashboard-definitions-7

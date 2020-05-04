@@ -45,6 +45,13 @@ configMapGenerator:
 - name: grafana-dashboard-definitions-6
   files:
   - dashboard-definitions/workload-total.json
+  - dashboard-definitions/istio-mesh-dashboard.json
+  - dashboard-definitions/istio-mixer-dashboard.json
+- name: grafana-dashboard-definition-7
+  files:
+  - dashboard-definitions/istio-performance-dashboard.json
+  - dashboard-definitions/istio-pilot-dashboard.json
+  - dashboard-definitions/istio-service-dashboard.json
 
 secretGenerator:
 - name: grafana-datasources
