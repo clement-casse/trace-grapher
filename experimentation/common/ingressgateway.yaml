@@ -8,7 +8,7 @@ spec:
   servers:
   - hosts: [ "*" ]
     port:
-      number: 8080
-      name: http2
-      protocol: HTTP2
+      number: 80
+      name: http
+      protocol: HTTP
     

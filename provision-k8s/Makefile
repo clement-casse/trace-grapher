@@ -242,6 +242,11 @@ init-istio-1.5.%: istiooperator.yml _init/istio-$(ISTIO_VERSION)/
 	kubectl apply -f istio-system-gateway.yml
 
 
+init-istio-1.6.%: istiooperator.yml _init/istio-$(ISTIO_VERSION)/
+	$(ISTIOCTL) manifest apply -f $<
+	kubectl apply -f istio-system-gateway.yml
+
+
 OPERATOR_REMOVAL_TARGETS += remove-istio
 remove-istio:
 	@-$(ISTIOCTL) manifest generate | kubectl delete -f -
