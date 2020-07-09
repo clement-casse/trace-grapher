@@ -244,7 +244,7 @@ init-istio-1.6.%: istiooperator.yml _init/istio-$(ISTIO_VERSION)/
 
 OPERATOR_REMOVAL_TARGETS += remove-istio
 remove-istio:
-	@-$(ISTIOCTL) manifest generate | kubectl delete -f -
+	@-$(ISTIOCTL) manifest generate --set profile=demo | kubectl delete -f -
 
 
 ########------------------------------------------------------------------------------########
