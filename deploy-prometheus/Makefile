@@ -4,8 +4,8 @@ OVERLAY ?= docker-desktop
 	install-prometheus \
 	remove-prometheus
 
-install-monitoring:
+install-prometheus:
 	@kubectl apply -k ./overlays/$(OVERLAY)
 
-remove-monitoring:
+remove-prometheus:
 	@-kubectl delete -k ./overlays/$(OVERLAY)
