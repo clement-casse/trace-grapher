@@ -16,7 +16,6 @@ OVERLAY ?= docker-desktop
 	get-jaeger  init-jaeger  remove-jaeger \
 	get-prometheus init-prometheus remove-prometheus \
 	get-istio   init-istio   remove-istio \
-	init-certmanager init-certmanager remove-certmanager \
 	get-operators install-operators configure-operators \
 	wipe purge
 
@@ -233,10 +232,6 @@ OPERATOR_INSTALL_TARGETS += init-istio
 init-istio: init-istio-$(ISTIO_VERSION)
 
 
-init-istio-1.4.%: controlplane.yml _init/istio-$(ISTIO_VERSION)/
-	$(ISTIOCTL) manifest apply -f $<
-
-
 init-istio-1.5.%: istiooperator.yml _init/istio-$(ISTIO_VERSION)/
 	$(ISTIOCTL) manifest apply -f $<
 	kubectl apply -f istio-system-gateway.yml
@@ -250,29 +245,6 @@ init-istio-1.6.%: istiooperator.yml _init/istio-$(ISTIO_VERSION)/
 OPERATOR_REMOVAL_TARGETS += remove-istio
 remove-istio:
 	@-$(ISTIOCTL) manifest generate | kubectl delete -f -
-
-
-get-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)/
-DOWNLOADED_OPERATORS += _init/certmanager-$(CERTMANAGER_VERSION)/
-_init/certmanager-$(CERTMANAGER_VERSION)/:
-	@mkdir -p $@
-	@curl --silent --location \
-		https://github.com/jetstack/cert-manager/releases/download/$(CERTMANAGER_VERSION)/cert-manager.yaml \
-		> $@/cert-manager.yaml
-
-
-OPERATOR_INSTALL_TARGETS += init-certmanager
-init-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)
-	@-kubectl create namespace cert-manager
-	@-kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true
-	@kubectl apply --validate=false -f $</cert-manager.yaml
-
-
-OPERATOR_REMOVAL_TARGETS += _init/certmanager-$(CERTMANAGER_VERSION)/
-remove-certmanager: _init/certmanager-$(CERTMANAGER_VERSION)/
-	@echo "Removing Cert Manger ..."
-	@-kubectl delete -f $</cert-manager.yaml
-	@echo "Done !"
 
 
 ########------------------------------------------------------------------------------########
